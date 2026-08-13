@@ -48,9 +48,13 @@ sys.path.insert(0, r"C:\Users\HP\OneDrive\Desktop\Proyectos\investigaciones\upre
 #      4 Básico(1-5)=0 · 5 Intermedio(1-3)=5 · 6 Medio(1-4)=8   (sistema antiguo)
 #      7 Primaria(1-8)=0 · 8 Secundario(1-4)=8                  (sistema anterior)
 #      9 Primaria(1-6)=0 · 10 Secundaria(1-6)=6                 (sistema actual)
+#    ★ TODO EL TRAMO SUPERIOR PARTE DE 12, maestría y doctorado INCLUIDOS.
+#      Probado contra `educacion/4` con bases 10, 11 y 12: dan 15, 164 y 238 de
+#      343. Un intento previo puso 17 y 19 para maestría/doctorado "porque
+#      vienen después de la licenciatura" — invención mía que EMPEORABA el
+#      resultado (141/343). El INE no los trata aparte.
 ANIOS12 = {4: 0, 5: 5, 6: 8, 7: 0, 8: 8, 9: 0, 10: 6,
-           11: 12, 12: 12, 15: 12, 16: 12, 17: 12,   # superior: parte de los 12
-           13: 17, 14: 19}                            # maestría y doctorado
+           11: 12, 12: 12, 13: 12, 14: 12, 15: 12, 16: 12, 17: 12}
 
 # ── ídem 2024, y ⚠️ LOS CÓDIGOS NO SON LOS MISMOS ───────────────────────────
 # La "secundaria del sistema actual" es el código 10 en 2012 y el 8 en 2024.
