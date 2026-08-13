@@ -1,0 +1,30 @@
+# ── DERIVADOS PESADOS: todos se REGENERAN corriendo el pipeline ──────────────
+# El repo guarda las REGLAS (motores, catálogo, lector, validadores), no sus
+# salidas grandes. Lo que se puede reconstruir con un comando no va al control
+# de versiones; lo que no, sí.
+#
+# Para regenerar todo, desde catalogo/:
+#   python motor.py · motor_persona.py · motor_nbi.py · motor_otros.py
+#   python motor_manzana.py · motor_flujos.py
+#   python chequeo.py · validar.py · validar_persona.py · armar_metro.py
+
+# nivel manzana: 93 MB, sale de motor_manzana.py
+catalogo/manzana_2024.csv
+
+# insumos del geoportal del INE (se bajan de mauforonda/atlasurbano)
+fuente/
+
+# GeoJSON intermedio de derivar_indicadores.py (78,9 MB) — insumo de
+# empaquetar_web.py, no es producto
+datos/manzanas_*.geojson
+
+# empaquetado para la web: lo produce empaquetar_web.py / preparar_web.py
+web/datos/geo_*.geojson
+web/datos/dat_*.json
+
+__pycache__/
+*.pyc
+*.bak
+
+# arneses de prueba (el guion bajo marca que no son producto)
+web/_prueba_*.html

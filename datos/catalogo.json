@@ -1,0 +1,416 @@
+{
+ "grupos": [
+  {
+   "key": "poblacion",
+   "label": "Población y hogar",
+   "indicadores": [
+    {
+     "key": "personas",
+     "label": "Personas",
+     "unit": "hab",
+     "dir": 0,
+     "desc": "Población censada en la manzana."
+    },
+    {
+     "key": "viviendas",
+     "label": "Viviendas",
+     "unit": "viv",
+     "dir": 0,
+     "desc": "Viviendas censadas en la manzana."
+    },
+    {
+     "key": "pers_x_vivienda",
+     "label": "Personas por vivienda",
+     "unit": "pers",
+     "dir": -1,
+     "desc": "Personas por vivienda ocupada. Valores altos indican hacinamiento potencial."
+    },
+    {
+     "key": "densidad",
+     "label": "Densidad",
+     "unit": "hab/ha",
+     "dir": 0,
+     "desc": "Personas por hectárea de superficie de la manzana."
+    },
+    {
+     "key": "pct_menor20",
+     "label": "Menores de 20 años",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Peso de la población de 0 a 19 años."
+    },
+    {
+     "key": "pct_60mas",
+     "label": "60 años y más",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Peso de la población de 60 años o más."
+    },
+    {
+     "key": "dependencia",
+     "label": "Razón de dependencia",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Población de 0-19 y 60+ por cada 100 personas de 20 a 59 años."
+    },
+    {
+     "key": "masculinidad",
+     "label": "Índice de masculinidad",
+     "unit": "h/100m",
+     "dir": 0,
+     "desc": "Hombres por cada 100 mujeres."
+    }
+   ]
+  },
+  {
+   "key": "migracion",
+   "label": "Migración",
+   "indicadores": [
+    {
+     "key": "pct_nacido_otro_mun",
+     "label": "Nacidos en otro municipio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas nacidas en otro municipio del país."
+    },
+    {
+     "key": "pct_nacido_exterior",
+     "label": "Nacidos en el exterior",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas nacidas en otro país."
+    },
+    {
+     "key": "pct_residia_otro_mun",
+     "label": "Residía en otro municipio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Migración reciente: residía en otro municipio."
+    }
+   ]
+  },
+  {
+   "key": "educacion",
+   "label": "Educación",
+   "indicadores": [
+    {
+     "key": "pct_educ_superior",
+     "label": "Educación superior",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Personas con nivel educativo superior alcanzado."
+    },
+    {
+     "key": "pct_sin_educacion",
+     "label": "Sin nivel educativo",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Personas sin ningún nivel educativo alcanzado."
+    },
+    {
+     "key": "brecha_educ_superior",
+     "label": "Brecha de género: superior",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales de diferencia (hombres − mujeres) en educación superior. Positivo = ventaja masculina."
+    },
+    {
+     "key": "brecha_sin_educacion",
+     "label": "Brecha de género: sin educación",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales de diferencia (hombres − mujeres) sin nivel educativo. Negativo = las mujeres están peor."
+    }
+   ]
+  },
+  {
+   "key": "salud",
+   "label": "Salud",
+   "indicadores": [
+    {
+     "key": "pct_sin_seguro",
+     "label": "Sin afiliación a salud",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Personas sin ninguna afiliación a un seguro de salud."
+    },
+    {
+     "key": "pct_sus",
+     "label": "Afiliados al SUS",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas afiliadas al Sistema Único de Salud."
+    },
+    {
+     "key": "pct_seguro_privado",
+     "label": "Seguro privado",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas con seguro de salud privado."
+    },
+    {
+     "key": "pct_automedicacion",
+     "label": "Automedicación",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Personas que ante una enfermedad acuden a la farmacia sin receta."
+    },
+    {
+     "key": "pct_med_tradicional",
+     "label": "Medicina tradicional",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas que acuden a la medicina tradicional."
+    },
+    {
+     "key": "brecha_sin_seguro",
+     "label": "Brecha de género: sin seguro",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales (hombres − mujeres) sin afiliación a salud."
+    }
+   ]
+  },
+  {
+   "key": "trabajo",
+   "label": "Trabajo",
+   "indicadores": [
+    {
+     "key": "pct_empleado",
+     "label": "Asalariados",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Ocupados en condición de empleado o asalariado."
+    },
+    {
+     "key": "pct_cuentapropia",
+     "label": "Trabajo por cuenta propia",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Ocupados por cuenta propia. Es la mejor aproximación censal a la informalidad."
+    },
+    {
+     "key": "brecha_cuentapropia",
+     "label": "Brecha de género: cuenta propia",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales (hombres − mujeres) en trabajo por cuenta propia."
+    },
+    {
+     "key": "pct_comercio",
+     "label": "Comercio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en comercio."
+    },
+    {
+     "key": "pct_manufactura",
+     "label": "Manufactura",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en industria manufacturera."
+    },
+    {
+     "key": "pct_construccion",
+     "label": "Construcción",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en construcción."
+    },
+    {
+     "key": "pct_agricultura",
+     "label": "Agricultura",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en agricultura, ganadería y silvicultura."
+    },
+    {
+     "key": "pct_transporte",
+     "label": "Transporte",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en transporte y almacenamiento."
+    },
+    {
+     "key": "pct_alojamiento",
+     "label": "Alojamiento y comida",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en alojamiento y servicios de comida."
+    }
+   ]
+  },
+  {
+   "key": "vivienda",
+   "label": "Vivienda",
+   "indicadores": [
+    {
+     "key": "pct_viv_propia",
+     "label": "Vivienda propia",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas ocupadas por sus propietarios."
+    },
+    {
+     "key": "pct_viv_alquilada",
+     "label": "Alquiler",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas en alquiler."
+    },
+    {
+     "key": "pct_viv_anticretico",
+     "label": "Anticrético",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas en anticrético."
+    },
+    {
+     "key": "pct_viv_desocupada",
+     "label": "Viviendas desocupadas",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas particulares desocupadas al momento del censo."
+    }
+   ]
+  },
+  {
+   "key": "servicios",
+   "label": "Servicios básicos",
+   "indicadores": [
+    {
+     "key": "pct_agua_red",
+     "label": "Agua por cañería de red",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas con agua por cañería de red."
+    },
+    {
+     "key": "pct_agua_pozo",
+     "label": "Agua de pozo",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que se abastecen de pozo."
+    },
+    {
+     "key": "pct_alcantarillado",
+     "label": "Alcantarillado",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas con desagüe conectado a la red de alcantarillado."
+    },
+    {
+     "key": "pct_camara_septica",
+     "label": "Cámara séptica",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas con desagüe a cámara séptica."
+    },
+    {
+     "key": "pct_pozo_ciego",
+     "label": "Pozo ciego",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas con desagüe a pozo ciego."
+    },
+    {
+     "key": "pct_sin_desague",
+     "label": "Sin desagüe",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas sin desagüe o que descargan a la superficie."
+    },
+    {
+     "key": "pct_electricidad",
+     "label": "Energía eléctrica",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas con electricidad de servicio público."
+    },
+    {
+     "key": "pct_gas_red",
+     "label": "Gas por cañería",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas que cocinan con gas domiciliario por cañería."
+    },
+    {
+     "key": "pct_gas_garrafa",
+     "label": "Gas en garrafa",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas que cocinan con gas en garrafa."
+    },
+    {
+     "key": "pct_lena_guano",
+     "label": "Leña o guano",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que cocinan con leña o guano."
+    },
+    {
+     "key": "pct_basura_carro",
+     "label": "Recojo formal de basura",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas cuya basura se recoge por carro basurero o contenedor público."
+    },
+    {
+     "key": "pct_basura_quema",
+     "label": "Quema de basura",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que queman su basura."
+    },
+    {
+     "key": "pct_basura_informal",
+     "label": "Basura a calle o río",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que arrojan su basura a la calle o a un río."
+    },
+    {
+     "key": "idx_carencia",
+     "label": "Índice de carencia de servicios",
+     "unit": "0-100",
+     "dir": -1,
+     "desc": "Promedio simple de cinco carencias: sin agua de red, sin alcantarillado, sin electricidad pública, cocina con leña o guano, y basura sin recojo formal. 0 = ninguna carencia, 100 = todas."
+    }
+   ]
+  },
+  {
+   "key": "conectividad",
+   "label": "Conectividad",
+   "indicadores": [
+    {
+     "key": "pct_internet",
+     "label": "Internet",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas con acceso a internet."
+    },
+    {
+     "key": "pct_celular",
+     "label": "Celular",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Viviendas con al menos un celular."
+    },
+    {
+     "key": "pct_televisor",
+     "label": "Televisor",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas con televisor."
+    },
+    {
+     "key": "pct_radio",
+     "label": "Radio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas con radio."
+    }
+   ]
+  }
+ ]
+}

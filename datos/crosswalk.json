@@ -1,0 +1,418 @@
+[
+ {
+  "manzana": "personas",
+  "label_manzana": "Personas",
+  "municipal": "pob_total",
+  "label_municipal": "Población total",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "viviendas",
+  "label_manzana": "Viviendas",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas no publica el total de viviendas."
+ },
+ {
+  "manzana": "pers_x_vivienda",
+  "label_manzana": "Personas por vivienda",
+  "municipal": "tam_hogar",
+  "label_municipal": "Personas por hogar",
+  "comparable": "no",
+  "nota": "Vivienda ≠ hogar: una vivienda puede alojar más de un hogar, así que el municipal es sistemáticamente menor."
+ },
+ {
+  "manzana": "densidad",
+  "label_manzana": "Densidad",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "No existe a nivel municipal; la superficie municipal incluye lo rural y la densidad no sería comparable."
+ },
+ {
+  "manzana": "pct_menor20",
+  "label_manzana": "Menores de 20 años",
+  "municipal": "pct_0_14",
+  "label_municipal": "Población 0–14 años",
+  "comparable": "no",
+  "nota": "Cortes distintos: 0-19 en la manzana, 0-14 en el municipio."
+ },
+ {
+  "manzana": "pct_60mas",
+  "label_manzana": "60 años y más",
+  "municipal": "pct_65_mas",
+  "label_municipal": "Adultos mayores (65+)",
+  "comparable": "no",
+  "nota": "Cortes distintos: 60+ en la manzana, 65+ en el municipio."
+ },
+ {
+  "manzana": "dependencia",
+  "label_manzana": "Razón de dependencia",
+  "municipal": "razon_dependencia",
+  "label_municipal": "Razón de dependencia",
+  "comparable": "no",
+  "nota": "La manzana usa (0-19 + 60+) / (20-59); el estándar municipal usa (0-14 + 65+) / (15-64)."
+ },
+ {
+  "manzana": "masculinidad",
+  "label_manzana": "Índice de masculinidad",
+  "municipal": "indice_masculinidad",
+  "label_municipal": "Índice de masculinidad",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_nacido_otro_mun",
+  "label_manzana": "Nacidos en otro municipio",
+  "municipal": "pct_nacido_otro_municipio",
+  "label_municipal": "Nacidos en otro municipio",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_nacido_exterior",
+  "label_manzana": "Nacidos en el exterior",
+  "municipal": "pct_nacido_extranjero",
+  "label_municipal": "Nacidos en el extranjero",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_residia_otro_mun",
+  "label_manzana": "Residía en otro municipio",
+  "municipal": "pct_migrante_reciente",
+  "label_municipal": "Migrantes recientes (desde 2019)",
+  "comparable": "revisar",
+  "nota": "Probable equivalencia (residencia previa vs. migración desde 2019), pero hay que confirmar contra la boleta censal antes de darlo por comparable."
+ },
+ {
+  "manzana": "pct_educ_superior",
+  "label_manzana": "Educación superior",
+  "municipal": "pct_edu_superior",
+  "label_municipal": "Educación superior (25+)",
+  "comparable": "no",
+  "nota": "El municipal es sobre 25 años y más; el de manzana es sobre todas las personas con dato educativo, así que sale más bajo."
+ },
+ {
+  "manzana": "pct_sin_educacion",
+  "label_manzana": "Sin nivel educativo",
+  "municipal": "pct_sin_educacion",
+  "label_municipal": "Sin nivel educativo (15+)",
+  "comparable": "no",
+  "nota": "⚠ MISMA CLAVE, universo distinto: el municipal es 15+, el de manzana es toda la población con dato. La coincidencia de nombre es una trampa."
+ },
+ {
+  "manzana": "brecha_educ_superior",
+  "label_manzana": "Brecha de género: superior",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Aporte propio: el Atlas no desagrega educación por sexo."
+ },
+ {
+  "manzana": "brecha_sin_educacion",
+  "label_manzana": "Brecha de género: sin educación",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Aporte propio."
+ },
+ {
+  "manzana": "pct_sin_seguro",
+  "label_manzana": "Sin afiliación a salud",
+  "municipal": "pct_seguro_salud",
+  "label_municipal": "Con seguro de salud",
+  "comparable": "no",
+  "nota": "Es el COMPLEMENTO, no el mismo indicador: para compararlos hay que invertir uno de los dos."
+ },
+ {
+  "manzana": "pct_sus",
+  "label_manzana": "Afiliados al SUS",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas mide dónde se ATIENDE la gente, no a qué seguro está afiliada."
+ },
+ {
+  "manzana": "pct_seguro_privado",
+  "label_manzana": "Seguro privado",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Ídem: `pct_salud_privada` del Atlas es atención, no afiliación."
+ },
+ {
+  "manzana": "pct_automedicacion",
+  "label_manzana": "Automedicación",
+  "municipal": "pct_automedicacion",
+  "label_municipal": "Se automedica",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_med_tradicional",
+  "label_manzana": "Medicina tradicional",
+  "municipal": "pct_salud_tradicional",
+  "label_municipal": "Acude a medicina tradicional",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "brecha_sin_seguro",
+  "label_manzana": "Brecha de género: sin seguro",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Aporte propio."
+ },
+ {
+  "manzana": "pct_empleado",
+  "label_manzana": "Asalariados",
+  "municipal": "pct_asalariados",
+  "label_municipal": "Asalariados",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_cuentapropia",
+  "label_manzana": "Trabajo por cuenta propia",
+  "municipal": "pct_cuenta_propia",
+  "label_municipal": "Trabajadores por cuenta propia",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "brecha_cuentapropia",
+  "label_manzana": "Brecha de género: cuenta propia",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Aporte propio."
+ },
+ {
+  "manzana": "pct_comercio",
+  "label_manzana": "Comercio",
+  "municipal": "pct_comercio",
+  "label_municipal": "Ocupados en comercio",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_manufactura",
+  "label_manzana": "Manufactura",
+  "municipal": "pct_sector_secundario",
+  "label_municipal": "Sector secundario",
+  "comparable": "no",
+  "nota": "El sector secundario del Atlas incluye construcción; el de manufactura de la manzana no."
+ },
+ {
+  "manzana": "pct_construccion",
+  "label_manzana": "Construcción",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas la agrupa dentro del sector secundario."
+ },
+ {
+  "manzana": "pct_agricultura",
+  "label_manzana": "Agricultura",
+  "municipal": "pct_sector_primario",
+  "label_municipal": "Sector primario (agri.+miner.)",
+  "comparable": "no",
+  "nota": "El sector primario del Atlas suma minería."
+ },
+ {
+  "manzana": "pct_transporte",
+  "label_manzana": "Transporte",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas sólo publica el agregado de servicios."
+ },
+ {
+  "manzana": "pct_alojamiento",
+  "label_manzana": "Alojamiento y comida",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Ídem."
+ },
+ {
+  "manzana": "pct_viv_propia",
+  "label_manzana": "Vivienda propia",
+  "municipal": "pct_vivienda_propia",
+  "label_municipal": "Vivienda propia",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_viv_alquilada",
+  "label_manzana": "Alquiler",
+  "municipal": "pct_alquiler",
+  "label_municipal": "Vivienda en alquiler",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_viv_anticretico",
+  "label_manzana": "Anticrético",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas no separa el anticrético."
+ },
+ {
+  "manzana": "pct_viv_desocupada",
+  "label_manzana": "Viviendas desocupadas",
+  "municipal": "pct_vivienda_desocupada",
+  "label_municipal": "Viviendas desocupadas",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_agua_red",
+  "label_manzana": "Agua por cañería de red",
+  "municipal": "pct_agua_caneria",
+  "label_municipal": "Agua por cañería",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_agua_pozo",
+  "label_manzana": "Agua de pozo",
+  "municipal": "pct_agua_pozo",
+  "label_municipal": "Agua de pozo",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_alcantarillado",
+  "label_manzana": "Alcantarillado",
+  "municipal": "pct_alcantarillado",
+  "label_municipal": "Con alcantarillado",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_camara_septica",
+  "label_manzana": "Cámara séptica",
+  "municipal": "pct_camara_septica",
+  "label_municipal": "Desagüe a cámara séptica",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_pozo_ciego",
+  "label_manzana": "Pozo ciego",
+  "municipal": "pct_pozo_ciego",
+  "label_municipal": "Desagüe a pozo ciego o superficie",
+  "comparable": "no",
+  "nota": "El municipal es «pozo ciego O superficie»; el de manzana es sólo pozo ciego (la superficie va en `pct_sin_desague`)."
+ },
+ {
+  "manzana": "pct_sin_desague",
+  "label_manzana": "Sin desagüe",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas reparte estas categorías dentro de `pct_pozo_ciego`."
+ },
+ {
+  "manzana": "pct_electricidad",
+  "label_manzana": "Energía eléctrica",
+  "municipal": "pct_electricidad",
+  "label_municipal": "Con electricidad",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_gas_red",
+  "label_manzana": "Gas por cañería",
+  "municipal": "pct_gas_natural",
+  "label_municipal": "Con gas natural a domicilio",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_gas_garrafa",
+  "label_manzana": "Gas en garrafa",
+  "municipal": "pct_gas_garrafa",
+  "label_municipal": "Cocina con gas en garrafa",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_lena_guano",
+  "label_manzana": "Leña o guano",
+  "municipal": "pct_combustible_solido",
+  "label_municipal": "Cocina con leña o guano",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_basura_carro",
+  "label_manzana": "Recojo formal de basura",
+  "municipal": "pct_basura_formal",
+  "label_municipal": "Recojo formal de basura",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_basura_quema",
+  "label_manzana": "Quema de basura",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "El Atlas sólo publica el recojo formal, no el destino de la basura no recogida."
+ },
+ {
+  "manzana": "pct_basura_informal",
+  "label_manzana": "Basura a calle o río",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Ídem."
+ },
+ {
+  "manzana": "idx_carencia",
+  "label_manzana": "Índice de carencia de servicios",
+  "municipal": null,
+  "label_municipal": null,
+  "comparable": null,
+  "nota": "Índice propio. El pariente municipal conceptual es `pct_nbi_pobre`, pero la NBI usa otra construcción y NO debe presentarse como su versión amanzanada."
+ },
+ {
+  "manzana": "pct_internet",
+  "label_manzana": "Internet",
+  "municipal": "pct_internet",
+  "label_municipal": "Con acceso a internet",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_celular",
+  "label_manzana": "Celular",
+  "municipal": "pct_celular",
+  "label_municipal": "Con celular",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_televisor",
+  "label_manzana": "Televisor",
+  "municipal": "pct_tv",
+  "label_municipal": "Con televisor",
+  "comparable": "si",
+  "nota": null
+ },
+ {
+  "manzana": "pct_radio",
+  "label_manzana": "Radio",
+  "municipal": "pct_radio",
+  "label_municipal": "Con radio",
+  "comparable": "si",
+  "nota": null
+ }
+]

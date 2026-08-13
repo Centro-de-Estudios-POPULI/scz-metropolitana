@@ -1,0 +1,2674 @@
+{
+ "anios_fiscal": [
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "niveles": {
+  "municipio": {
+   "n": 9,
+   "fuente": "INE Censo 2024 · MEFP ejecución presupuestaria",
+   "cobertura": "todo el territorio municipal"
+  },
+  "manzana": {
+   "n": 38892,
+   "fuente": "INE Censo 2024, fichas por manzano",
+   "cobertura": "área urbana censada; 25.698 manzanas con ficha (66%), que concentran el 93,8% de la población de la región"
+  }
+ },
+ "grupos": [
+  {
+   "key": "demografía",
+   "label": "Demografía",
+   "indicadores": [
+    {
+     "key": "pob_total",
+     "label": "Población total",
+     "unit": "hab",
+     "dir": 0,
+     "desc": "Total de habitantes del municipio según el CPV 2024.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pob_total",
+     "k_mz": "personas",
+     "continuo": true
+    },
+    {
+     "key": "pct_0_14",
+     "label": "Población 0–14 años",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población en la franja 0-14 años (dependencia joven).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_0_14",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_menor20",
+      "nota": "Cortes distintos: 0-19 en la manzana, 0-14 en el municipio.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_65_mas",
+     "label": "Adultos mayores (65+)",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población de 65 años o más (dependencia senil).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_65_mas",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_60mas",
+      "nota": "Cortes distintos: 60+ en la manzana, 65+ en el municipio.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "tam_hogar",
+     "label": "Personas por hogar",
+     "unit": "pers",
+     "dir": -1,
+     "desc": "Promedio de personas por vivienda ocupada. Valores altos indican mayor hacinamiento potencial.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tam_hogar",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pers_x_vivienda",
+      "nota": "Vivienda ≠ hogar: una vivienda puede alojar más de un hogar, así que el municipal es sistemáticamente menor.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_urbano",
+     "label": "Urbanización",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas ubicadas en área urbana según clasificación censal.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_urbano",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "indice_masculinidad",
+     "label": "Índice de masculinidad",
+     "unit": "h/100m",
+     "dir": 0,
+     "desc": "Número de hombres por cada 100 mujeres. Valores mayores a 100 indican predominio masculino (típico de zonas mineras o de colonización agraria).",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "indice_masculinidad",
+     "k_mz": "masculinidad",
+     "continuo": true
+    },
+    {
+     "key": "edad_mediana",
+     "label": "Edad mediana",
+     "unit": "años",
+     "dir": 0,
+     "desc": "Edad que divide a la población en dos mitades iguales. Municipios jóvenes tienen mediana baja; la migración de jóvenes la eleva.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "edad_mediana",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "razon_dependencia",
+     "label": "Razón de dependencia",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Población de 0-14 y 65+ años por cada 100 personas en edad de trabajar (15-64). Valores altos implican mayor carga económica por activo.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "razon_dependencia",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "dependencia",
+      "nota": "La manzana usa (0-19 + 60+) / (20-59); el estándar municipal usa (0-14 + 65+) / (15-64).",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_hogar_unipersonal",
+     "label": "Hogares unipersonales",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas habitadas por una sola persona.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_hogar_unipersonal",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_hogar_extendido",
+     "label": "Hogares extendidos",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares extendidos o compuestos (núcleo familiar más otros parientes o no parientes).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_hogar_extendido",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "mz_viviendas",
+     "label": "Viviendas",
+     "unit": "viv",
+     "dir": 0,
+     "desc": "Viviendas censadas en la manzana.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "viviendas",
+     "continuo": null,
+     "nota": "El Atlas no publica el total de viviendas."
+    },
+    {
+     "key": "mz_pers_x_vivienda",
+     "label": "Personas por vivienda",
+     "unit": "pers",
+     "dir": -1,
+     "desc": "Personas por vivienda ocupada. Valores altos indican hacinamiento potencial.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pers_x_vivienda",
+     "continuo": null,
+     "par_municipal": {
+      "key": "tam_hogar",
+      "nota": "Vivienda ≠ hogar: una vivienda puede alojar más de un hogar, así que el municipal es sistemáticamente menor.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_densidad",
+     "label": "Densidad",
+     "unit": "hab/ha",
+     "dir": 0,
+     "desc": "Personas por hectárea de superficie de la manzana.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "densidad",
+     "continuo": null,
+     "nota": "No existe a nivel municipal; la superficie municipal incluye lo rural y la densidad no sería comparable."
+    },
+    {
+     "key": "mz_pct_menor20",
+     "label": "Menores de 20 años",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Peso de la población de 0 a 19 años.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_menor20",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_0_14",
+      "nota": "Cortes distintos: 0-19 en la manzana, 0-14 en el municipio.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_60mas",
+     "label": "60 años y más",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Peso de la población de 60 años o más.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_60mas",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_65_mas",
+      "nota": "Cortes distintos: 60+ en la manzana, 65+ en el municipio.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_dependencia",
+     "label": "Razón de dependencia (20-59 como base)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Población de 0-19 y 60+ por cada 100 personas de 20 a 59 años.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "dependencia",
+     "continuo": null,
+     "par_municipal": {
+      "key": "razon_dependencia",
+      "nota": "La manzana usa (0-19 + 60+) / (20-59); el estándar municipal usa (0-14 + 65+) / (15-64).",
+      "estado": "no"
+     }
+    }
+   ]
+  },
+  {
+   "key": "pueblos_e_idiomas",
+   "label": "Pueblos e Idiomas",
+   "indicadores": [
+    {
+     "key": "pct_autoident_indigena",
+     "label": "Autoidentificación indígena",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que se autoidentifica con alguna nación o pueblo indígena originario campesino o afroboliviano (pregunta 32 del CPV 2024).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_autoident_indigena",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_quechua",
+     "label": "Autoidentificación quechua",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que se autoidentifica como quechua.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_quechua",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_aymara",
+     "label": "Autoidentificación aymara",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que se autoidentifica como aymara.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_aymara",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_guarani",
+     "label": "Autoidentificación guaraní",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que se autoidentifica como guaraní.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_guarani",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_idioma_materno_originario",
+     "label": "Idioma materno originario",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de personas cuyo primer idioma aprendido en la niñez es un idioma originario (quechua, aymara, guaraní u otros 30 reconocidos).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_idioma_materno_originario",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_idioma_materno_castellano",
+     "label": "Idioma materno castellano",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de personas cuyo primer idioma aprendido en la niñez es el castellano.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_idioma_materno_castellano",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "ciudadanía_y_registro",
+   "label": "Ciudadanía y Registro",
+   "indicadores": [
+    {
+     "key": "pct_registro_civil",
+     "label": "Inscritos en registro civil",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de personas cuyo nacimiento está inscrito en el registro civil boliviano. La brecha restante es población legalmente invisible.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_registro_civil",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_cedula_identidad",
+     "label": "Con cédula de identidad",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de personas que tienen o tuvieron cédula de identidad boliviana (incluye cédula de extranjero).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_cedula_identidad",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "educación",
+   "label": "Educación",
+   "indicadores": [
+    {
+     "key": "pct_analfabetismo",
+     "label": "Analfabetismo (15+)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas de 15+ años que no saben leer ni escribir.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_analfabetismo",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "prom_anios_estudio",
+     "label": "Años de estudio promedio (25+)",
+     "unit": "años",
+     "dir": 1,
+     "desc": "Promedio de años de estudio de la población de 25 años y más.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "prom_anios_estudio",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_sin_educacion",
+     "label": "Sin nivel educativo (15+)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas de 15+ sin ningún nivel de instrucción.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_sin_educacion",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_sin_educacion",
+      "nota": "⚠ MISMA CLAVE, universo distinto: el municipal es 15+, el de manzana es toda la población con dato. La coincidencia de nombre es una trampa.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_edu_primaria",
+     "label": "Solo primaria (15+)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas de 15+ cuyo nivel máximo es primaria (completa o incompleta).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_edu_primaria",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_edu_secundaria",
+     "label": "Secundaria (15+)",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de personas de 15+ cuyo nivel máximo es secundaria.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_edu_secundaria",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_edu_superior",
+     "label": "Educación superior (25+)",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de personas de 25+ con algún nivel de educación superior.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_edu_superior",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_educ_superior",
+      "nota": "El municipal es sobre 25 años y más; el de manzana es sobre todas las personas con dato educativo, así que sale más bajo.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_asistencia_escolar",
+     "label": "Asistencia escolar (6–17)",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de niños y adolescentes de 6 a 17 años que asisten a un establecimiento educativo.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_asistencia_escolar",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_secundaria_mas",
+     "label": "Secundaria o más (18+)",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de personas de 18+ con secundaria completa o nivel superior.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_secundaria_mas",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_educacion_publica",
+     "label": "Estudia en sistema público",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de estudiantes que asisten a establecimientos públicos o de convenio (vs. privados). Refleja la dependencia del sistema fiscal.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_educacion_publica",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_asistencia_4_5",
+     "label": "Asistencia inicial (4-5 años)",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de niños de 4 y 5 años que asisten a un establecimiento educativo (educación inicial).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_asistencia_4_5",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_asistencia_18_24",
+     "label": "Asistencia 18-24 años",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de jóvenes de 18 a 24 años que continúan estudiando (educación superior o alternativa).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_asistencia_18_24",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_analfabetismo_mujeres",
+     "label": "Analfabetismo femenino (15+)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de mujeres de 15 años o más que no saben leer ni escribir. Compárese con el analfabetismo total para ver la brecha de género.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_analfabetismo_mujeres",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "mz_pct_educ_superior",
+     "label": "Educación superior · toda la población",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Personas con nivel educativo superior alcanzado.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_educ_superior",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_edu_superior",
+      "nota": "El municipal es sobre 25 años y más; el de manzana es sobre todas las personas con dato educativo, así que sale más bajo.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_sin_educacion",
+     "label": "Sin nivel educativo · toda la población",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Personas sin ningún nivel educativo alcanzado.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_sin_educacion",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_sin_educacion",
+      "nota": "⚠ MISMA CLAVE, universo distinto: el municipal es 15+, el de manzana es toda la población con dato. La coincidencia de nombre es una trampa.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_brecha_educ_superior",
+     "label": "Brecha de género: superior",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales de diferencia (hombres − mujeres) en educación superior. Positivo = ventaja masculina.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "brecha_educ_superior",
+     "continuo": null,
+     "nota": "Aporte propio: el Atlas no desagrega educación por sexo."
+    },
+    {
+     "key": "mz_brecha_sin_educacion",
+     "label": "Brecha de género: sin educación",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales de diferencia (hombres − mujeres) sin nivel educativo. Negativo = las mujeres están peor.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "brecha_sin_educacion",
+     "continuo": null,
+     "nota": "Aporte propio."
+    }
+   ]
+  },
+  {
+   "key": "salud",
+   "label": "Salud",
+   "indicadores": [
+    {
+     "key": "pct_seguro_salud",
+     "label": "Con seguro de salud",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de la población con algún tipo de cobertura o seguro de salud.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_seguro_salud",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_sin_seguro",
+      "nota": "Es el COMPLEMENTO, no el mismo indicador: para compararlos hay que invertir uno de los dos.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "fecundidad",
+     "label": "Fecundidad (hijos/mujer 15–49)",
+     "unit": "hijos",
+     "dir": 0,
+     "desc": "Promedio de hijos nacidos vivos por mujer de 15 a 49 años que respondió la pregunta.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "fecundidad",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "edad_1er_hijo",
+     "label": "Edad promedio al primer hijo",
+     "unit": "años",
+     "dir": 1,
+     "desc": "Edad promedio de la madre al tener su primer hijo (mujeres con al menos 1 hijo declarado).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "edad_1er_hijo",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_salud_publica",
+     "label": "Acude a salud pública",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que acude a puestos, centros u hospitales de salud públicos cuando tiene problemas de salud.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_salud_publica",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_caja_salud",
+     "label": "Acude a cajas de salud",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que acude a cajas de salud (seguridad social de corto plazo).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_caja_salud",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_salud_privada",
+     "label": "Acude a salud privada",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que acude a consultorios, clínicas u hospitales privados.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_salud_privada",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_salud_tradicional",
+     "label": "Acude a medicina tradicional",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población que acude a médicos tradicionales ancestrales cuando tiene problemas de salud.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_salud_tradicional",
+     "k_mz": "pct_med_tradicional",
+     "continuo": true
+    },
+    {
+     "key": "pct_automedicacion",
+     "label": "Se automedica",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población que recurre a farmacias sin receta médica o se automedica ante problemas de salud.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_automedicacion",
+     "k_mz": "pct_automedicacion",
+     "continuo": true
+    },
+    {
+     "key": "pct_parto_calificado",
+     "label": "Partos con personal calificado",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de últimos partos (5 años previos) atendidos por personal de salud calificado. Indicador clave de mortalidad materna evitable.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_parto_calificado",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_hijos_fallecidos",
+     "label": "Hijos fallecidos",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Hijos fallecidos como porcentaje de los nacidos vivos declarados por las madres. Proxy de la mortalidad infantil y en la niñez acumulada.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_hijos_fallecidos",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_madres_adolescentes",
+     "label": "Madres adolescentes (15-19)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de mujeres de 15 a 19 años que ya son madres de al menos un hijo nacido vivo.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_madres_adolescentes",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "mz_pct_sin_seguro",
+     "label": "Sin afiliación a salud",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Personas sin ninguna afiliación a un seguro de salud.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_sin_seguro",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_seguro_salud",
+      "nota": "Es el COMPLEMENTO, no el mismo indicador: para compararlos hay que invertir uno de los dos.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_sus",
+     "label": "Afiliados al SUS",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas afiliadas al Sistema Único de Salud.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_sus",
+     "continuo": null,
+     "nota": "El Atlas mide dónde se ATIENDE la gente, no a qué seguro está afiliada."
+    },
+    {
+     "key": "mz_pct_seguro_privado",
+     "label": "Seguro privado",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Personas con seguro de salud privado.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_seguro_privado",
+     "continuo": null,
+     "nota": "Ídem: `pct_salud_privada` del Atlas es atención, no afiliación."
+    },
+    {
+     "key": "mz_brecha_sin_seguro",
+     "label": "Brecha de género: sin seguro",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales (hombres − mujeres) sin afiliación a salud.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "brecha_sin_seguro",
+     "continuo": null,
+     "nota": "Aporte propio."
+    }
+   ]
+  },
+  {
+   "key": "discapacidad",
+   "label": "Discapacidad",
+   "indicadores": [
+    {
+     "key": "pct_discapacidad",
+     "label": "Con alguna discapacidad",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población con al menos una discapacidad declarada.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_discapacidad",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_disc_ver",
+     "label": "Dificultad severa para ver",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas con mucha dificultad o imposibilidad de ver, incluso con lentes.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_disc_ver",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_disc_oir",
+     "label": "Dificultad severa para oír",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas con mucha dificultad o imposibilidad de oír, incluso con audífonos.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_disc_oir",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_disc_caminar",
+     "label": "Dificultad severa para caminar",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas con mucha dificultad o imposibilidad para caminar, subir gradas o usar brazos y manos.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_disc_caminar",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_disc_cognitiva",
+     "label": "Dificultad severa cognitiva",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de personas con mucha dificultad o imposibilidad para comunicarse, aprender, concentrarse o razonar.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_disc_cognitiva",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "empleo",
+   "label": "Empleo",
+   "indicadores": [
+    {
+     "key": "tasa_participacion",
+     "label": "Tasa de participación laboral",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de la Población Económicamente Activa (PEA) sobre la Población en Edad de Trabajar (PET, 10+).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_participacion",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_ocupacion",
+     "label": "Tasa de ocupación",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de ocupados sobre la Población en Edad de Trabajar (PET).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_ocupacion",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_desocupacion",
+     "label": "Tasa de desocupación",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de desocupados (cesantes + aspirantes) sobre la PEA.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_desocupacion",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_sector_primario",
+     "label": "Sector primario (agri.+miner.)",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados en agricultura, ganadería, silvicultura, pesca y minería.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_sector_primario",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_agricultura",
+      "nota": "El sector primario del Atlas suma minería.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_sector_servicios",
+     "label": "Sector servicios",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados en comercio, transporte, servicios, administración pública y otros.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_sector_servicios",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_cuenta_propia",
+     "label": "Trabajadores por cuenta propia",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados que trabajan por cuenta propia (independientes sin empleados a cargo).",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_cuenta_propia",
+     "k_mz": "pct_cuentapropia",
+     "continuo": true
+    },
+    {
+     "key": "pct_asalariados",
+     "label": "Asalariados",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados que trabajan como empleados u obreros (relación de dependencia). Proxy de formalidad del mercado laboral.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_asalariados",
+     "k_mz": "pct_empleado",
+     "continuo": true
+    },
+    {
+     "key": "pct_empleadores",
+     "label": "Empleadores",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados que son empleadores o socios con trabajadores a su cargo.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_empleadores",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_trab_familiar",
+     "label": "Trabajo familiar sin pago",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de ocupados que trabajan para un negocio familiar sin remuneración. Típico de economías campesinas de subsistencia.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_trab_familiar",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_sector_secundario",
+     "label": "Sector secundario",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados en industria manufacturera, construcción, electricidad y agua.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_sector_secundario",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_manufactura",
+      "nota": "El sector secundario del Atlas incluye construcción; el de manufactura de la manzana no.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_comercio",
+     "label": "Ocupados en comercio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados en comercio al por mayor y menor y reparación de vehículos.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_comercio",
+     "k_mz": "pct_comercio",
+     "continuo": true
+    },
+    {
+     "key": "pct_admin_publica",
+     "label": "Empleo público (adm.)",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados en administración pública, defensa y seguridad social obligatoria. No incluye maestros ni personal de salud.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_admin_publica",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_participacion_fem",
+     "label": "Participación laboral femenina",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de mujeres en edad de trabajar que integran la fuerza laboral (ocupadas o buscando empleo).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_participacion_fem",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_ocupacion_fem",
+     "label": "Tasa de ocupación femenina",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de mujeres en edad de trabajar que están ocupadas.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_ocupacion_fem",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "mz_brecha_cuentapropia",
+     "label": "Brecha de género: cuenta propia",
+     "unit": "pp",
+     "dir": 0,
+     "desc": "Puntos porcentuales (hombres − mujeres) en trabajo por cuenta propia.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "brecha_cuentapropia",
+     "continuo": null,
+     "nota": "Aporte propio."
+    },
+    {
+     "key": "mz_pct_manufactura",
+     "label": "Manufactura",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en industria manufacturera.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_manufactura",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_sector_secundario",
+      "nota": "El sector secundario del Atlas incluye construcción; el de manufactura de la manzana no.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_construccion",
+     "label": "Construcción",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en construcción.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_construccion",
+     "continuo": null,
+     "nota": "El Atlas la agrupa dentro del sector secundario."
+    },
+    {
+     "key": "mz_pct_agricultura",
+     "label": "Agricultura",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en agricultura, ganadería y silvicultura.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_agricultura",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_sector_primario",
+      "nota": "El sector primario del Atlas suma minería.",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_transporte",
+     "label": "Transporte",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en transporte y almacenamiento.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_transporte",
+     "continuo": null,
+     "nota": "El Atlas sólo publica el agregado de servicios."
+    },
+    {
+     "key": "mz_pct_alojamiento",
+     "label": "Alojamiento y comida",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Ocupados en alojamiento y servicios de comida.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_alojamiento",
+     "continuo": null,
+     "nota": "Ídem."
+    }
+   ]
+  },
+  {
+   "key": "migración_interna",
+   "label": "Migración interna",
+   "indicadores": [
+    {
+     "key": "pct_nacido_otro_municipio",
+     "label": "Nacidos en otro municipio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de residentes que nacieron en otro municipio del país (migración interna de toda la vida). Mide el atractivo migratorio histórico.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_nacido_otro_municipio",
+     "k_mz": "pct_nacido_otro_mun",
+     "continuo": true
+    },
+    {
+     "key": "pct_nacido_extranjero",
+     "label": "Nacidos en el extranjero",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de residentes que nacieron en otro país.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_nacido_extranjero",
+     "k_mz": "pct_nacido_exterior",
+     "continuo": true
+    },
+    {
+     "key": "pct_migrante_reciente",
+     "label": "Migrantes recientes (desde 2019)",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de residentes que en 2019 vivían en otro municipio o país. Mide la atracción migratoria de los últimos 5 años.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_migrante_reciente",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_residia_otro_mun",
+      "nota": "Probable equivalencia (residencia previa vs. migración desde 2019), pero hay que confirmar contra la boleta censal antes de darlo por comparable.",
+      "estado": "revisar"
+     }
+    },
+    {
+     "key": "pct_trabaja_fuera",
+     "label": "Trabaja fuera del municipio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de ocupados cuyo lugar de trabajo está en otro municipio u otro país (movilidad laboral cotidiana o conmutación).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_trabaja_fuera",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "mz_pct_residia_otro_mun",
+     "label": "Residía en otro municipio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Migración reciente: residía en otro municipio.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_residia_otro_mun",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_migrante_reciente",
+      "nota": "Probable equivalencia (residencia previa vs. migración desde 2019), pero hay que confirmar contra la boleta censal antes de darlo por comparable.",
+      "estado": "revisar"
+     }
+    }
+   ]
+  },
+  {
+   "key": "emigración_internacional",
+   "label": "Emigración internacional",
+   "indicadores": [
+    {
+     "key": "pct_con_emigrante",
+     "label": "Hogares con emigrante",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen al menos un miembro que emigró al exterior o a otra ciudad.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_con_emigrante",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "emigrantes_x1000",
+     "label": "Emigrantes por 1.000 hab.",
+     "unit": "‰",
+     "dir": 0,
+     "desc": "Personas del hogar que viven actualmente en otro país, por cada 1.000 habitantes del municipio.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "emigrantes_x1000",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_emi_argentina",
+     "label": "Emigrantes en Argentina",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de los emigrantes internacionales del municipio cuyo destino es Argentina.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_emi_argentina",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_emi_espana",
+     "label": "Emigrantes en España",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de los emigrantes internacionales del municipio cuyo destino es España.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_emi_espana",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_emi_brasil",
+     "label": "Emigrantes en Brasil",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de los emigrantes internacionales del municipio cuyo destino es Brasil.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_emi_brasil",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_emi_chile",
+     "label": "Emigrantes en Chile",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de los emigrantes internacionales del municipio cuyo destino es Chile.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_emi_chile",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_emi_eeuu",
+     "label": "Emigrantes en EE.UU.",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de los emigrantes internacionales del municipio cuyo destino es Estados Unidos.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_emi_eeuu",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "edad_prom_emigracion",
+     "label": "Edad promedio al emigrar",
+     "unit": "años",
+     "dir": 0,
+     "desc": "Edad promedio a la que las personas salieron del país.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "edad_prom_emigracion",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "servicios_básicos",
+   "label": "Servicios Básicos",
+   "indicadores": [
+    {
+     "key": "pct_agua_caneria",
+     "label": "Agua por cañería",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con agua proveniente de la red de cañería pública.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_agua_caneria",
+     "k_mz": "pct_agua_red",
+     "continuo": true
+    },
+    {
+     "key": "pct_agua_interior",
+     "label": "Agua dentro de la vivienda",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que reciben el agua por cañería dentro de la propia vivienda.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_agua_interior",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_servicio_sanitario",
+     "label": "Con servicio sanitario",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con baño o letrina (uso exclusivo o compartido).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_servicio_sanitario",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_alcantarillado",
+     "label": "Con alcantarillado",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas cuyo desagüe está conectado a la red de alcantarillado público.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_alcantarillado",
+     "k_mz": "pct_alcantarillado",
+     "continuo": true
+    },
+    {
+     "key": "pct_electricidad",
+     "label": "Con electricidad",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con servicio público de energía eléctrica.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_electricidad",
+     "k_mz": "pct_electricidad",
+     "continuo": true
+    },
+    {
+     "key": "pct_basura_formal",
+     "label": "Recojo formal de basura",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que depositan su basura en contenedor público o la entrega al carro basurero.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_basura_formal",
+     "k_mz": "pct_basura_carro",
+     "continuo": true
+    },
+    {
+     "key": "pct_agua_no_mejorada",
+     "label": "Agua de fuente no mejorada",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas que se abastecen de pozo sin protección, río, acequia, vertiente no protegida o carro aguatero.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_agua_no_mejorada",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_agua_pozo",
+     "label": "Agua de pozo",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas que se abastecen de pozo excavado o perforado (con o sin bomba).",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_agua_pozo",
+     "k_mz": "pct_agua_pozo",
+     "continuo": true
+    },
+    {
+     "key": "pct_pozo_ciego",
+     "label": "Desagüe a pozo ciego o superficie",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas cuyo baño desagua a pozo ciego o directamente a la superficie (calle, quebrada o río).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_pozo_ciego",
+     "k_mz": null,
+     "continuo": null,
+     "par_manzana": {
+      "key": "pct_pozo_ciego",
+      "nota": "El municipal es «pozo ciego O superficie»; el de manzana es sólo pozo ciego (la superficie va en `pct_sin_desague`).",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "pct_camara_septica",
+     "label": "Desagüe a cámara séptica",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas cuyo baño desagua a una cámara séptica.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_camara_septica",
+     "k_mz": "pct_camara_septica",
+     "continuo": true
+    },
+    {
+     "key": "mz_pct_pozo_ciego",
+     "label": "Pozo ciego (sin superficie)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas con desagüe a pozo ciego.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_pozo_ciego",
+     "continuo": null,
+     "par_municipal": {
+      "key": "pct_pozo_ciego",
+      "nota": "El municipal es «pozo ciego O superficie»; el de manzana es sólo pozo ciego (la superficie va en `pct_sin_desague`).",
+      "estado": "no"
+     }
+    },
+    {
+     "key": "mz_pct_sin_desague",
+     "label": "Sin desagüe",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas sin desagüe o que descargan a la superficie.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_sin_desague",
+     "continuo": null,
+     "nota": "El Atlas reparte estas categorías dentro de `pct_pozo_ciego`."
+    },
+    {
+     "key": "mz_pct_basura_quema",
+     "label": "Quema de basura",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que queman su basura.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_basura_quema",
+     "continuo": null,
+     "nota": "El Atlas sólo publica el recojo formal, no el destino de la basura no recogida."
+    },
+    {
+     "key": "mz_pct_basura_informal",
+     "label": "Basura a calle o río",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Viviendas que arrojan su basura a la calle o a un río.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_basura_informal",
+     "continuo": null,
+     "nota": "Ídem."
+    },
+    {
+     "key": "mz_idx_carencia",
+     "label": "Índice de carencia de servicios",
+     "unit": "0-100",
+     "dir": -1,
+     "desc": "Promedio simple de cinco carencias: sin agua de red, sin alcantarillado, sin electricidad pública, cocina con leña o guano, y basura sin recojo formal. 0 = ninguna carencia, 100 = todas.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "idx_carencia",
+     "continuo": null,
+     "nota": "Índice propio. El pariente municipal conceptual es `pct_nbi_pobre`, pero la NBI usa otra construcción y NO debe presentarse como su versión amanzanada."
+    }
+   ]
+  },
+  {
+   "key": "energía_y_cocina",
+   "label": "Energía y Cocina",
+   "indicadores": [
+    {
+     "key": "pct_gas_natural",
+     "label": "Con gas natural a domicilio",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que cocinan con gas suministrado por cañería domiciliaria.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_gas_natural",
+     "k_mz": "pct_gas_red",
+     "continuo": true
+    },
+    {
+     "key": "pct_combustible_solido",
+     "label": "Cocina con leña o guano",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas que cocinan con leña, guano, bosta o taquia. Indicador de pobreza energética con impacto en salud respiratoria.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_combustible_solido",
+     "k_mz": "pct_lena_guano",
+     "continuo": true
+    },
+    {
+     "key": "pct_gas_garrafa",
+     "label": "Cocina con gas en garrafa",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas cuyo principal combustible para cocinar es el gas en garrafa (GLP subvencionado).",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_gas_garrafa",
+     "k_mz": "pct_gas_garrafa",
+     "continuo": true
+    },
+    {
+     "key": "pct_cocina_exclusiva",
+     "label": "Con cuarto solo para cocinar",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que disponen de un cuarto exclusivo para cocinar.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_cocina_exclusiva",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_panel_solar",
+     "label": "Energía por panel solar",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas cuya energía eléctrica proviene de panel solar. Relevante en zonas rurales dispersas sin red.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_panel_solar",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_sin_energia",
+     "label": "Sin energía eléctrica",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas que no tienen ninguna fuente de energía eléctrica.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_sin_energia",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "vivienda_y_materiales",
+   "label": "Vivienda y Materiales",
+   "indicadores": [
+    {
+     "key": "pct_piso_tierra",
+     "label": "Piso de tierra",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas con piso de tierra (indicador de precariedad habitacional).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_piso_tierra",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_pared_adobe",
+     "label": "Paredes de adobe/tapial",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas con paredes de adobe o tapial. Predominante en zonas rurales andinas.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_pared_adobe",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_techo_calamina",
+     "label": "Techo de calamina",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas con techo de calamina o plancha metálica.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_techo_calamina",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_hacinamiento",
+     "label": "Viviendas con hacinamiento",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas con más de 3 personas por dormitorio.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_hacinamiento",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_pared_ladrillo",
+     "label": "Paredes de ladrillo/bloque",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con paredes de ladrillo, bloque de cemento u hormigón.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_pared_ladrillo",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_revoque",
+     "label": "Paredes con revoque",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas cuyas paredes interiores tienen revoque (acabado).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_revoque",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_techo_teja",
+     "label": "Techo de teja",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas con techo de teja de cemento, arcilla o fibrocemento.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_techo_teja",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_techo_paja",
+     "label": "Techo de paja o palma",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas con techo de paja, palma, caña, barro o jatata. Indicador de precariedad habitacional rural.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_techo_paja",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_monoambiente",
+     "label": "Viviendas de un solo cuarto",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas que ocupan un solo cuarto o habitación (sin contar baño y cocina).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_monoambiente",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_choza",
+     "label": "Chozas o pahuichis",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de viviendas clasificadas como choza o pahuichi.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_choza",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_departamento",
+     "label": "Departamentos",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas tipo departamento. Proxy de densificación urbana en altura.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_departamento",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_vivienda_desocupada",
+     "label": "Viviendas desocupadas",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas desocupadas (para alquilar o vender, en construcción o abandonadas) sobre el total de viviendas registradas.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_vivienda_desocupada",
+     "k_mz": "pct_viv_desocupada",
+     "continuo": true
+    }
+   ]
+  },
+  {
+   "key": "tenencia",
+   "label": "Tenencia",
+   "indicadores": [
+    {
+     "key": "pct_vivienda_propia",
+     "label": "Vivienda propia",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas propias (totalmente pagadas o en proceso de pago).",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_vivienda_propia",
+     "k_mz": "pct_viv_propia",
+     "continuo": true
+    },
+    {
+     "key": "pct_alquiler",
+     "label": "Vivienda en alquiler",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas ocupadas bajo la modalidad de alquiler.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_alquiler",
+     "k_mz": "pct_viv_alquilada",
+     "continuo": true
+    },
+    {
+     "key": "mz_pct_viv_anticretico",
+     "label": "Anticrético",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Viviendas en anticrético.",
+     "fuente": "censo",
+     "nivel": "manzana",
+     "k_mun": null,
+     "k_mz": "pct_viv_anticretico",
+     "continuo": null,
+     "nota": "El Atlas no separa el anticrético."
+    }
+   ]
+  },
+  {
+   "key": "tecnología_y_conectividad",
+   "label": "Tecnología y Conectividad",
+   "indicadores": [
+    {
+     "key": "pct_internet",
+     "label": "Con acceso a internet",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con acceso a internet fijo o móvil.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_internet",
+     "k_mz": "pct_internet",
+     "continuo": true
+    },
+    {
+     "key": "pct_computadora",
+     "label": "Con computadora",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que poseen computadora o tablet.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_computadora",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_celular",
+     "label": "Con celular",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas que poseen al menos un celular.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_celular",
+     "k_mz": "pct_celular",
+     "continuo": true
+    },
+    {
+     "key": "pct_tv_cable",
+     "label": "Con TV por cable",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con servicio de televisión por cable o satélite.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_tv_cable",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_internet_fijo",
+     "label": "Con internet fijo",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de viviendas con servicio de internet fijo instalado.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_internet_fijo",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_internet_movil",
+     "label": "Con internet móvil",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas que acceden a internet mediante datos móviles (megas).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_internet_movil",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_telefono_fijo",
+     "label": "Con telefonía fija",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de viviendas con servicio de telefonía fija.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_telefono_fijo",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "equipamiento_del_hogar",
+   "label": "Equipamiento del Hogar",
+   "indicadores": [
+    {
+     "key": "pct_refrigerador",
+     "label": "Con refrigerador",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de hogares que tienen refrigerador o congeladora.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_refrigerador",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_lavadora",
+     "label": "Con lavadora",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de hogares que tienen lavadora de ropa.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_lavadora",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_microondas",
+     "label": "Con microondas",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen horno microondas.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_microondas",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_aire_acond",
+     "label": "Con aire acondicionado",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares con aire acondicionado. Concentrado en tierras bajas.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_aire_acond",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_auto",
+     "label": "Con vehículo automotor",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de hogares que tienen vehículo automotor.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_auto",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_moto",
+     "label": "Con motocicleta",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen motocicleta o cuadratrack. Medio de transporte dominante en los llanos.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_moto",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_bicicleta",
+     "label": "Con bicicleta",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen bicicleta.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_bicicleta",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_bote",
+     "label": "Con bote o canoa",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares con deslizador, balsa, canoa o bote. Relevante en la Amazonía y zonas ribereñas.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_bote",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_radio",
+     "label": "Con radio",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen radio o equipo de sonido.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_radio",
+     "k_mz": "pct_radio",
+     "continuo": true
+    },
+    {
+     "key": "pct_tv",
+     "label": "Con televisor",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de hogares que tienen televisor.",
+     "fuente": "censo",
+     "nivel": "ambos",
+     "k_mun": "pct_tv",
+     "k_mz": "pct_televisor",
+     "continuo": true
+    }
+   ]
+  },
+  {
+   "key": "mortalidad",
+   "label": "Mortalidad",
+   "indicadores": [
+    {
+     "key": "pct_hogar_fallecido",
+     "label": "Hogares con fallecido (2019+)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de hogares donde murió al menos un miembro desde 2019 (incluye el período de la pandemia).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_hogar_fallecido",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "tasa_mortalidad",
+     "label": "Tasa de mortalidad declarada",
+     "unit": "‰",
+     "dir": -1,
+     "desc": "Fallecidos declarados por los hogares (2019-2024, anualizado) por cada 1.000 habitantes. Subestima la tasa real por hogares disueltos.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "tasa_mortalidad",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "edad_prom_fallecimiento",
+     "label": "Edad promedio de fallecimiento",
+     "unit": "años",
+     "dir": 1,
+     "desc": "Edad promedio al morir de los fallecidos declarados (2019-2024). Proxy municipal de longevidad.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "edad_prom_fallecimiento",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_muertes_covid",
+     "label": "Muertes por COVID-19",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de los fallecidos (2019-2024) cuya muerte se atribuyó al COVID-19.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_muertes_covid",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "pobreza_(nbi)",
+   "label": "Pobreza (NBI)",
+   "indicadores": [
+    {
+     "key": "pct_nbi_pobre",
+     "label": "Población pobre (NBI)",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población en situación de pobreza según el método de Necesidades Básicas Insatisfechas (NBI). Incluye pobreza moderada, indigencia y marginalidad.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_pobre",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_no_pobre",
+     "label": "Población no pobre (NBI)",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de la población que satisface las necesidades básicas mínimas (NBS + umbral de pobreza).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_no_pobre",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_satisfechas",
+     "label": "NB satisfechas",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Porcentaje de la población con necesidades básicas plenamente satisfechas: vivienda adecuada, servicios básicos, educación y salud.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_satisfechas",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_umbral",
+     "label": "Umbral de pobreza",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje de la población en el umbral de pobreza: condiciones de vida aceptables, levemente por encima de las normas mínimas. No se considera pobre.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_umbral",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_moderada",
+     "label": "Pobreza moderada",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población en pobreza moderada: condiciones de vida ligeramente por debajo de las normas mínimas de NBI.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_moderada",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_indigente",
+     "label": "Indigencia",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población en situación de indigencia: se encuentra significativamente por debajo de las normas mínimas de NBI.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_indigente",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_marginal",
+     "label": "Marginalidad",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de la población en marginalidad extrema: carece de servicios de agua y saneamiento, vivienda precaria, muy bajos niveles educativos y severo déficit en salud.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_marginal",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "componentes_nbi",
+   "label": "Componentes NBI",
+   "indicadores": [
+    {
+     "key": "pct_nbi_materiales",
+     "label": "NBI: Materiales de vivienda",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con inadecuados materiales de vivienda (piso de tierra, paredes de adobe no revocado/tapial/piedra/caña, techo de paja/caña/desecho).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_materiales",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_espacios",
+     "label": "NBI: Espacios de vivienda",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con insuficientes espacios en la vivienda (más de 5 personas por 2 dormitorios, sin sala/comedor adicional, sin cocina exclusiva).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_espacios",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_agua_sanea",
+     "label": "NBI: Agua y saneamiento",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con inadecuados servicios de agua y saneamiento básico.",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_agua_sanea",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_energia",
+     "label": "NBI: Insumos energéticos",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con inadecuados insumos energéticos (sin electricidad y/o sin gas o combustible adecuado para cocinar).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_energia",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_educacion",
+     "label": "NBI: Educación",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con insuficiencia educativa (años aprobados, alfabetización y asistencia escolar por debajo de los estándares mínimos).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_educacion",
+     "k_mz": null,
+     "continuo": null
+    },
+    {
+     "key": "pct_nbi_salud",
+     "label": "NBI: Atención en salud",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Porcentaje de población con inadecuada atención en salud (sin cobertura ni acceso a servicios de salud).",
+     "fuente": "censo",
+     "nivel": "municipio",
+     "k_mun": "pct_nbi_salud",
+     "k_mz": null,
+     "continuo": null
+    }
+   ]
+  },
+  {
+   "key": "fiscal_estructura_de_ingresos",
+   "label": "Fiscal · Estructura de Ingresos",
+   "indicadores": [
+    {
+     "key": "fi_cp_it",
+     "label": "Coparticipación / Ing. Total",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Porcentaje del ingreso total que proviene de la Coparticipación Tributaria del TGN. Indica cuánto depende el municipio del fisco nacional.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "cp_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_idh_it",
+     "label": "IDH / Ing. Total",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Peso del IDH (Impuesto Directo a los Hidrocarburos) en el ingreso total. Refleja la dependencia de la renta hidrocarburífera.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "idh_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_rp_it",
+     "label": "Recursos Propios / Ing. Total",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Ingresos propios (tasas, impuestos municipales, venta de bienes y servicios) como porcentaje del ingreso total. Mide la autonomía fiscal local.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "rp_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_rc_it",
+     "label": "Recursos de Capital / Ing. Total",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Regalías y transferencias de capital como porcentaje del ingreso total.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "rc_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_rc_ic",
+     "label": "Recursos de Capital / Ing. Corriente",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Recursos de Capital en relación a los Ingresos Corrientes. Indica el peso del financiamiento de capital sobre el flujo operativo.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "rc_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  },
+  {
+   "key": "fiscal_sostenibilidad_de_ing._corrientes",
+   "label": "Fiscal · Sostenibilidad de Ing. Corrientes",
+   "indicadores": [
+    {
+     "key": "fi_cp_ic",
+     "label": "Coparticipación / Ing. Corriente",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Coparticipación Tributaria como porcentaje del Ingreso Corriente. Mide la dependencia del fisco nacional dentro de la base fiscal sostenible (sin capital ni deuda).",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "cp_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_idh_ic",
+     "label": "IDH / Ing. Corriente",
+     "unit": "%",
+     "dir": 0,
+     "desc": "IDH como porcentaje del Ingreso Corriente. Refleja la dependencia hidrocarburífera sobre la base fiscal recurrente.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "idh_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_rp_ic",
+     "label": "Recursos Propios / Ing. Corriente",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Ingresos propios como porcentaje del Ingreso Corriente. Mide la autonomía fiscal real: cuánto del ingreso sostenible proviene de fuentes propias del municipio.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "rp_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  },
+  {
+   "key": "fiscal_estructura_del_gasto",
+   "label": "Fiscal · Estructura del Gasto",
+   "indicadores": [
+    {
+     "key": "fi_gc_gt",
+     "label": "Gasto Corriente / Gasto Total",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Gasto corriente (remuneraciones, bienes y servicios, transferencias) como porcentaje del gasto total. Valores altos dejan menor margen para inversión.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "gc_gt",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_ge_gt",
+     "label": "Inversión / Gasto Total",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Inversión pública (Gasto de Capital) como porcentaje del gasto total. Refleja la capacidad de invertir en infraestructura y servicios.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "ge_gt",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_f1_gt",
+     "label": "Amort. Deuda Fin. (F.1) / G. Total",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Amortización de deuda financiera (F.1) como porcentaje del gasto total. Mide la carga del servicio de deuda bancaria o bonos.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "f1_gt",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_f2_gt",
+     "label": "Amort. Flotante (F.2) / G. Total",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Pago de deuda flotante —cuentas por pagar, obligaciones vencidas— como porcentaje del gasto total.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "f2_gt",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  },
+  {
+   "key": "fiscal_gasto_por_sectores",
+   "label": "Fiscal · Gasto por Sectores",
+   "indicadores": [
+    {
+     "key": "fi_s_adm",
+     "label": "Administración / G. Sectorial",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Gasto en Administración General (COFOG 1) como porcentaje del gasto sectorial total. Refleja la carga burocrática del municipio.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_adm",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_edu",
+     "label": "Educación / G. Sectorial",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Gasto en Educación (COFOG 8) como porcentaje del gasto sectorial. Incluye infraestructura y equipamiento de unidades educativas.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_edu",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_sal",
+     "label": "Salud / G. Sectorial",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Gasto en Salud (COFOG 6) como porcentaje del gasto sectorial. Incluye infraestructura hospitalaria y equipamiento médico.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_sal",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_eco",
+     "label": "Economía / G. Sectorial",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Gasto en sectores económicos (COFOG 3): agricultura, transporte, energía, industria y comercio.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_eco",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_viv",
+     "label": "Vivienda e Infraestr. / G. Sectorial",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Gasto en Vivienda e Infraestructura (COFOG 5): agua potable, alcantarillado, urbanismo y construcción.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_viv",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_prt",
+     "label": "Protección Social / G. Sectorial",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Gasto en Protección Social (COFOG 9): adultos mayores, programas sociales y atención a grupos vulnerables.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_prt",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_seg",
+     "label": "Seguridad / G. Sectorial",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Gasto en Seguridad y Orden Público (COFOG 2): policía municipal, bomberos, defensa civil.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_seg",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_med",
+     "label": "Medio Ambiente / G. Sectorial",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Gasto en Medio Ambiente (COFOG 4): saneamiento, parques, gestión de residuos y protección ambiental.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_med",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_s_cul",
+     "label": "Cultura / G. Sectorial",
+     "unit": "%",
+     "dir": 0,
+     "desc": "Gasto en Cultura, Deportes y Recreación (COFOG 7): infraestructura cultural, eventos y deporte.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "s_cul",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  },
+  {
+   "key": "fiscal_per_cápita",
+   "label": "Fiscal · Per Cápita",
+   "indicadores": [
+    {
+     "key": "fi_it_pc",
+     "label": "Ingreso Total per cápita",
+     "unit": "Bs/hab",
+     "dir": 1,
+     "desc": "Ingreso total (A+B+C) dividido entre la población estimada del año. Representa los recursos fiscales disponibles por habitante.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "it_pc",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_sl_pc",
+     "label": "Salud per cápita",
+     "unit": "Bs/hab",
+     "dir": 1,
+     "desc": "Gasto municipal en salud por habitante. Indicador de esfuerzo fiscal e inversión en atención de salud.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "sl_pc",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_ed_pc",
+     "label": "Educación per cápita",
+     "unit": "Bs/hab",
+     "dir": 1,
+     "desc": "Gasto municipal en educación por habitante. Indicador de inversión educativa por ciudadano.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "ed_pc",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_inv_pc",
+     "label": "Inversión per cápita",
+     "unit": "Bs/hab",
+     "dir": 1,
+     "desc": "Inversión pública total (Gasto de Capital, partida E) por habitante. Mide el esfuerzo inversor por persona.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "inv_pc",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_ic_pc",
+     "label": "Ingreso Corriente per cápita",
+     "unit": "Bs/hab",
+     "dir": 1,
+     "desc": "Ingreso Corriente (Subtotal A) por habitante. Mide los recursos fiscales recurrentes y sostenibles disponibles por persona, excluyendo capital y deuda.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "ic_pc",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  },
+  {
+   "key": "fiscal_resultado_fiscal",
+   "label": "Fiscal · Resultado Fiscal",
+   "indicadores": [
+    {
+     "key": "fi_rpf_ic",
+     "label": "RPF / Ing. Corriente",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Resultado Pre-Financiamiento como porcentaje del Ingreso Corriente. Negativo indica que el municipio gastó más de lo generado antes de recurrir a deuda.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "rpf_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": true
+    },
+    {
+     "key": "fi_dcj_ic",
+     "label": "Déficit de Caja / Ing. Corriente",
+     "unit": "%",
+     "dir": 1,
+     "desc": "Resultado Pre-Financiamiento menos amortización de deuda financiera (F.1) y deuda flotante (F.2), expresado como porcentaje del Ingreso Corriente. Mide la presión fiscal efectiva.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "dcj_ic",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": true
+    },
+    {
+     "key": "fi_f1_it",
+     "label": "Deuda Financiera (F.1) / Ing. Total",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Amortización de deuda financiera (F.1) como porcentaje del ingreso total. Indica la carga del servicio de deuda bancaria sobre el total de recursos.",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "f1_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    },
+    {
+     "key": "fi_op_it",
+     "label": "Otros Pasivos (ΔCxP) / Ing. Total",
+     "unit": "%",
+     "dir": -1,
+     "desc": "Variación de cuentas por pagar (ΔCxP) como porcentaje del ingreso total. Valores positivos indican acumulación de deuda flotante (nuevas obligaciones no pagadas).",
+     "fuente": "fiscal",
+     "nivel": "municipio",
+     "k_mun": "op_it",
+     "k_mz": null,
+     "continuo": null,
+     "serie": true,
+     "div": false
+    }
+   ]
+  }
+ ]
+}

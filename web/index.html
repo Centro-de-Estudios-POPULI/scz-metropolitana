@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Santa Cruz · Atlas Metropolitano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<!-- La identidad se extrae del Atlas Socioeconómico, no se transcribe:
+     `python scripts/extraer_estilo.py`. Ver la cabecera del archivo. -->
+<link href="estilo-atlas.css" rel="stylesheet">
+<style>
+/* ── Sólo lo propio de este tablero. Todo lo demás vive en estilo-atlas.css ── */
+#mapbox{position:fixed;inset:0}
+#map{position:absolute;inset:0}
+.maplibregl-ctrl-attrib{display:none}
+.maplibregl-canvas{outline:none}
+
+/* Selector de nivel: es el control que define este producto, así que va en la
+   barra superior y no escondido en un panel. */
+.niv{display:flex;flex:none;border:1px solid rgba(255,255,255,.22);overflow:hidden}
+.niv button{font:600 .66rem/1 var(--f);letter-spacing:.02em;color:rgba(255,255,255,.72);
+  background:transparent;border:0;padding:7px 11px;cursor:pointer;transition:background .18s,color .18s}
+.niv button+button{border-left:1px solid rgba(255,255,255,.22)}
+.niv button:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
+.niv button.on{background:var(--warm);color:#17221a}
+.niv button:disabled{opacity:.38;cursor:not-allowed}
+
+/* Aviso de por qué el nivel manzana no está disponible, o de qué cambia al bajar */
+.aviso{position:fixed;z-index:13;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--peek) + 18px);max-width:min(30rem,86vw);
+  background:var(--glass);border:1px solid var(--linea);box-shadow:var(--sh);
+  padding:9px 13px;font-size:.72rem;line-height:1.45;color:var(--tx);
+  backdrop-filter:blur(7px);display:none;animation:softIn .22s ease}
+.aviso.on{display:block}
+.aviso b{color:var(--red)}
+body.dark .aviso b{color:var(--orange)}
+
+/* Selector de gestión, sólo visible con un indicador fiscal activo */
+.anios{display:none;gap:0;border:1px solid var(--linea);overflow:hidden;margin:8px 0 2px}
+.anios.on{display:flex;flex-wrap:wrap}
+.anios button{font:600 .62rem/1 var(--f);color:var(--suave);background:var(--card-solid);
+  border:0;padding:5px 7px;cursor:pointer}
+.anios button+button{border-left:1px solid var(--linea-2)}
+.anios button.on{background:var(--sel);color:#fff}
+
+/* Barra de carga de las manzanas */
+#carga{position:fixed;top:54px;left:0;right:0;height:2px;z-index:15;background:transparent}
+#carga i{display:block;height:100%;width:0;background:var(--warm);transition:width .2s}
+
+.cober{font-size:.63rem;color:var(--faint);line-height:1.5;margin-top:7px;
+  padding-top:7px;border-top:1px solid var(--linea-2)}
+
+/* ── Tooltip ────────────────────────────────────────────────────────────────
+   El molde (#pop, .pn, .pd, .pv, .pr) viene del Atlas en `estilo-atlas.css`.
+   Acá van sólo las piezas que este tablero agrega: el chip del color que le
+   tocó en el mapa, la rampa con el marcador de dónde cae el valor, el rótulo
+   del indicador y la nota de las manzanas sin ficha. */
+#pop{max-width:16rem;transition:opacity .12s ease}
+#pop .pind{font-size:.53rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--faint);margin-top:.45rem;line-height:1.3}
+#pop .pv{margin-top:.16rem}
+#pop .pchip{width:11px;height:11px;flex:none;align-self:center;
+  box-shadow:0 0 0 1px rgba(128,140,148,.42)}
+/* La rampa es la MISMA del termómetro y del mapa; el marcador dice en qué punto
+   de ese degradé cayó este polígono, que es lo que el color ya está diciendo
+   pero sin obligar a estimarlo a ojo contra la leyenda del pie. */
+#pop .pramp{position:relative;height:5px;margin:.42rem 0 .1rem;border:1px solid var(--linea-2)}
+#pop .pramp i{position:absolute;top:-2.5px;bottom:-2.5px;width:2px;margin-left:-1px;
+  background:var(--tx);box-shadow:0 0 0 1px var(--card-solid)}
+#pop .pr{gap:.7rem;align-items:baseline}
+#pop .pr>span:first-child{flex:none;color:var(--faint)}
+#pop .pr>span:last-child{text-align:right;min-width:0}
+#pop .pr .up{color:var(--teal-dk);font-weight:700;margin-left:.15rem}
+#pop .pr .dn{color:var(--orange);font-weight:700;margin-left:.15rem}
+#pop .pnota{font-size:.54rem;color:var(--faint);line-height:1.5;margin-top:.34rem;
+  padding-top:.34rem;border-top:1px solid var(--linea-2)}
+#pop .pnota b{color:var(--suave);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* El Atlas trae `#panel-det{display:none}` porque allá la ficha aparece recién
+   al elegir un municipio. Acá el panel derecho sirve siempre: muestra la
+   comparación de los nueve, que es la lectura por defecto de una región. */
+#panel-det{display:flex!important;flex-direction:column}
+#panel-det .p-body{overflow-y:auto;padding:12px 14px}
+
+/* Grupos por nivel dentro de una categoría */
+.nivsep{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.11em;
+  color:var(--faint);margin:14px 0 6px;display:flex;align-items:center;gap:7px}
+.nivsep::after{content:"";flex:1;height:1px;background:var(--linea-2)}
+.nivsep:first-child{margin-top:2px}
+
+/* Comparativo entre municipios (panel derecho) */
+/* ESCALA. Ojo con las medidas de acá: son unidades de viewBox, no píxeles. El
+   SVG se estira al ancho del panel (~220–300 px para 100 unidades), así que
+   cada unidad vale 2,2–3,0 px reales. Con 5,4 los nombres salían a 12–16 px,
+   el doble que las etiquetas del panel de indicadores (.k-l 7,4 px · .i-df
+   9 px) y el panel derecho se leía de otro tamaño que el resto del tablero. */
+.cmp-t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--faint);margin:2px 0 6px}
+.cmp-t span{font-family:var(--f);text-transform:none;letter-spacing:0;
+  font-size:.62rem;font-weight:600;color:var(--suave)}
+.cmp{width:100%;height:auto;display:block;overflow:hidden}
+.cmp .cmp-n{font:500 4px var(--f);fill:var(--suave)}
+.cmp .cmp-n.sel{fill:var(--sel);font-weight:700}
+.cmp .cmp-v{font:700 3.9px var(--f);fill:var(--tx);font-variant-numeric:tabular-nums}
+.cmp .cmp-piv{stroke:var(--tx);stroke-width:.5;stroke-dasharray:1.6 1.4;opacity:.55}
+.sin{font-size:.7rem;color:var(--faint);padding:6px 0}
+
+/* ── Serie fiscal: 10 gestiones del municipio contra la región ───────────────
+   DOS COLORES, elegidos con el validador de la paleta y no a ojo. El par
+   obvio —`--sel` contra `--faint`— FALLA en oscuro: ΔE 12,2 en visión normal,
+   por debajo del piso de 15, o sea dos líneas que cuesta distinguir aun viendo
+   todos los colores. Los tonos de acá pasan separación normal (19,9 y 16,5),
+   CVD y contraste ≥3:1 contra la superficie en los dos temas.
+   El gris de la región queda FUERA del piso de croma a propósito: no es una
+   segunda entidad compitiendo por identidad, es la referencia contra la que se
+   lee el municipio, y tiene que leerse como cromo. */
+:root{--ser-mun:#005f73;--ser-reg:#7d8f99}
+body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
+#serie:not(:empty){margin:15px 0 2px}
+.ser{width:100%;height:auto;display:block;overflow:visible}
+.ser-l{fill:none;stroke-width:.72;stroke-linejoin:round;stroke-linecap:round}
+.ser-l.mun{stroke:var(--ser-mun)}
+/* Trazo discontinuo en la región: la identidad no queda librada SÓLO al color. */
+.ser-l.reg{stroke:var(--ser-reg);stroke-dasharray:2.4 1.8}
+.ser-d{fill:var(--ser-mun)}
+/* Anillo del color de la superficie, no un borde: separa el punto activo de la
+   línea que pasa por debajo sin dibujar un contorno. */
+.ser-d.on{stroke:var(--card-solid);stroke-width:.75}
+/* Misma escala de viewBox que el comparativo de acá arriba (~4 unidades), para
+   que los dos gráficos del panel se lean del mismo tamaño. */
+.ser-ax{font:500 3.8px var(--f);fill:var(--faint)}
+.ser-ax.on{fill:var(--tx);font-weight:700}
+.ser-tk{font:500 3.6px var(--f);fill:var(--faint);font-variant-numeric:tabular-nums}
+/* Halo del color del panel: la cifra de la gestión activa se dibuja pegada a su
+   punto y ahí pasa la línea, así que sin esto queda tachada por el trazo. Con
+   `paint-order` el contorno va DEBAJO del relleno y no engorda la letra. */
+.ser-v{font:700 4.2px var(--f);fill:var(--tx);font-variant-numeric:tabular-nums;
+  paint-order:stroke;stroke:var(--card-solid);stroke-width:.9px;stroke-linejoin:round}
+.ser-base{stroke:var(--linea-2);stroke-width:.4}
+/* La banda ocupa TODO el alto del área de dibujo: el blanco de arriba y de
+   abajo también selecciona el año, así que no hay que acertarle al punto. */
+.ser-band rect{fill:transparent;cursor:pointer}
+.ser-gd{stroke:var(--ser-mun);stroke-width:.4;opacity:0;transition:opacity .12s}
+.ser-band:hover .ser-gd{opacity:.45}
+.ser-lg{display:flex;flex-wrap:wrap;gap:11px;margin-top:6px;
+  font-size:.55rem;color:var(--suave);font-weight:500}
+.ser-lg span{display:flex;align-items:center;gap:5px;min-width:0}
+.ser-lg b{color:var(--tx);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ser-lg i{width:13px;height:2px;flex:none;background:var(--ser-mun)}
+.ser-lg i.reg{background:repeating-linear-gradient(90deg,var(--ser-reg) 0 3.5px,transparent 3.5px 5.5px)}
+
+/* Nada del panel derecho puede empujar hacia afuera: los valores largos
+   (1.610.982) y los nombres de municipio desbordaban la columna. */
+#panel-det,#panel-det *{min-width:0}
+#panel-det .kgrid{width:100%}
+/* La cifra de cada tarjeta bajó de .78–1rem a .72–.88rem: a 1rem competía con el
+   título del panel y hacía que la ficha se leyera a otra escala que la lista de
+   indicadores de la izquierda. */
+#panel-det .k-v{overflow-wrap:anywhere;font-size:clamp(.72rem,1.8vw,.88rem)}
+#panel-det .k-l,#panel-det .k-c{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel-det .k-c{display:flex;justify-content:space-between;gap:6px}
+#panel-det .k-c span{overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+
+<div id="mapbox"><div id="map"></div></div>
+<div id="carga"><i></i></div>
+
+<div id="top">
+  <div class="logo"><svg viewBox="0 0 200 200">
+    <polygon points="100,10 155,35 191,84 173,142 130,183 69,185 26,143 10,84 45,35" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="7"/>
+    <polygon points="100,38 138,55 165,90 152,131 121,160 78,161 47,132 36,90 62,55" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="6"/>
+    <polygon points="100,64 124,75 141,97 133,124 113,143 86,144 66,125 59,97 76,75" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="5"/>
+    <polygon points="100,88 111,93 119,104 115,116 106,125 94,126 84,117 81,104 89,93" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="4"/>
+  </svg></div>
+  <div class="t-tit">
+    <div class="t-h"><b>Santa Cruz:</b> Atlas Metropolitano</div>
+    <div class="t-name">Observatorio de Finanzas Públicas y Desarrollo Territorial</div>
+  </div>
+  <div class="top-sp"></div>
+  <div class="niv" id="niv">
+    <button data-n="municipio" class="on">Municipio</button>
+    <button data-n="manzana">Manzana</button>
+  </div>
+  <button class="tbtog" id="theme-btn" title="Modo oscuro">
+    <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+    <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+  <div class="t-s" id="t-s">Censo 2024 · <b>9 municipios</b></div>
+</div>
+
+<div class="panel" id="panel-ind">
+  <div class="cat-bar" id="cat-bar">
+    <div class="p-kick"><span>Categoría</span><span class="kick-n" id="kick-n"></span></div>
+    <button class="cat-btn" id="cat-btn"><span class="cn">Demografía</span><span class="ar">▾</span></button>
+    <div class="cat-drop" id="cat-drop"></div>
+  </div>
+  <div class="p-body">
+    <div class="p-sub" id="p-sub">elegí un indicador para verlo en el mapa</div>
+    <div class="anios" id="anios"></div>
+    <div class="lista" id="lista"></div>
+  </div>
+  <div class="p-foot">
+    Una iniciativa de <a href="#">CCTD</a><span class="sep">·</span><a href="#">POPULI</a><span class="sep">·</span><a href="#">UPSA</a><br>
+    <a href="#">Ir al portal del OFPDT ↗</a>
+    <div class="cober" id="cober"></div>
+  </div>
+</div>
+
+<div class="panel" id="panel-det">
+  <div class="sheet-top" id="sheet-grip">
+    <div class="det-head"><div class="d-mun" id="d-mun">Región Metropolitana</div><div class="d-sub" id="d-sub">9 municipios · 2,2 millones de personas</div></div>
+    <div class="pk" id="pk"></div>
+  </div>
+  <div class="p-body">
+    <div id="cmp"></div>
+    <div id="serie"></div>
+    <div class="kgrid" id="kgrid"></div>
+  </div>
+</div>
+
+<div class="zc"><button id="z-in">+</button><button id="z-out">−</button><button id="z-rst">⤢</button></div>
+
+<div class="termo">
+  <div class="tm-top"><div class="tm-t" id="tm-t">—</div><div class="tm-st" id="tm-st"></div></div>
+  <div class="tm-row"><span class="tm-side" id="tm-lo"></span><div class="tm-bar" id="tm-bar"></div><span class="tm-side" id="tm-hi"></span></div>
+</div>
+
+<div class="aviso" id="aviso"></div>
+<div id="pop"></div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ATLAS METROPOLITANO DE SANTA CRUZ
+   Dos niveles en un mapa: 9 municipios y 38.892 manzanas.
+
+   La escala es la MISMA que la de los atlas nacionales (divergente con ancla
+   real y rampa orientada por `dir`), portada de `ps.escala_atlas` / del JS de
+   Mapa_Censo_2024_Bolivia.html. Que un municipio se lea igual acá que en el
+   atlas nacional no es un detalle: es la razón de que el ecosistema sirva.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const DIV = ["#00323d","#005f73","#0a9396","#94d2bd","#e9d8a6","#eda13e","#df5d25","#c71e1d","#8f1f22"];
+const UMBRAL_ZOOM = 11.4;     // a partir de acá el nivel manzana tiene sentido visual
+const SIN_DATO = {claro:"#dfe5ea", oscuro:"#243440"};
+
+/* OPACIDADES. Bajas a propósito: el coroplético va ENCIMA de un mapa real, y si
+   lo tapa deja de servir de referencia justo cuando más se la necesita —al
+   acercarse a la manzana—. Con el relleno translúcido se leen las dos cosas: el
+   valor por el tono y el lugar por la calle de abajo. */
+const OPACIDAD = {mun: .55, mz: .62};
+
+/* FUNDIDO POR ZOOM. En vez de que el nivel cambie de golpe con el botón, las dos
+   capas conviven y se cruzan en una banda de zoom: al acercarte, los municipios
+   se desvanecen mientras las manzanas aparecen. El botón sólo te lleva de un
+   lado al otro de esa banda. */
+const Z0 = 10.6, Z1 = 12.2;   // banda del cruce
+const fundido = (a, b) => ["interpolate", ["linear"], ["zoom"], Z0, a, Z1, b];
+
+let CAT, MUN, FIS, cat_actual, ind_actual, nivel = "municipio", anio_i = 9;
+let mzCargadas = {}, mzTodas = null, sel = null;
+// Escala vigente (la que acaba de pintar el mapa). El tooltip la lee para dar el
+// chip de color, la posición en la rampa y el percentil sin recalcular nada.
+let ESC = null;
+// `map` se declara ACÁ ARRIBA y no junto a su creación: la inicialización del
+// tema corre antes y lo consulta, y con `let` eso no devuelve undefined sino que
+// tira ReferenceError por la zona muerta temporal — mataba el script entero
+// antes de montar el panel.
+let map = null, sinMapa = false, MINI = null;
+const esOscuro = () => document.body.classList.contains("dark");
+
+/* ── TEMA ────────────────────────────────────────────────────────────────── */
+function aplicarTema(oscuro, guardar){
+  document.body.classList.toggle("dark", oscuro);
+  const b = document.getElementById("theme-btn");
+  if (b) b.title = oscuro ? "Modo claro" : "Modo oscuro";
+  if (guardar) { try { localStorage.setItem("ofpdt-tema", oscuro ? "dark" : "light"); } catch(_){} }
+  if (map && map.getLayer && map.getLayer("base_claro")){
+    map.setLayoutProperty("base_claro", "visibility", oscuro ? "none" : "visible");
+    map.setLayoutProperty("base_oscuro", "visibility", oscuro ? "visible" : "none");
+    map.setPaintProperty("fondo", "background-color", oscuro ? "#0b1318" : "#f2efe8");
+    const borde = oscuro ? "#0b1318" : "#ffffff";
+    if (map.getLayer("mun-line")) map.setPaintProperty("mun-line", "line-color", borde);
+    if (map.getLayer("mz-line")) map.setPaintProperty("mz-line", "line-color", borde);
+  }
+  if (map) pintar();
+  if (typeof CAT !== "undefined" && CAT && cat_actual) montarIndicadores();
+}
+(() => { let p = null; try { p = localStorage.getItem("ofpdt-tema"); } catch(_){}
+  aplicarTema(p ? p === "dark" : matchMedia("(prefers-color-scheme:dark)").matches, false); })();
+document.getElementById("theme-btn").onclick = () => aplicarTema(!esOscuro(), true);
+
+/* ── ESCALA ──────────────────────────────────────────────────────────────────
+   Idéntica a la de los atlas: dominio [p02, pivote, p98] con el pivote en el
+   PROMEDIO PONDERADO POR POBLACIÓN —una magnitud real, la de la región— y la
+   rampa invertida cuando `dir:+1`, para que el rojo marque siempre el lado
+   malo. El recorte p02/p98 evita que un outlier se coma media paleta. */
+function cuantil(ord, q){
+  if (!ord.length) return null;
+  const h = (ord.length - 1) * q, b = Math.floor(h), r = h - b;
+  return ord[b + 1] !== undefined ? ord[b] + r * (ord[b + 1] - ord[b]) : ord[b];
+}
+/* `unidad` decide el pivote: en un CONTEO (habitantes, viviendas) el promedio
+   ponderado por población no significa nada legible —da Σp²/Σp, el tamaño del
+   municipio de la persona promedio— así que ahí se usa la mediana. Es la misma
+   regla que aplica `escala_atlas` en Python; se me había escapado al portarla, y
+   la leyenda mostraba "región 1.171.414" para Población total. */
+function escala(valores, pesos, dir, conSigno, unidad){
+  if (unidad === "hab" || unidad === "viv") pesos = null;
+  const v = [], w = [];
+  for (let i = 0; i < valores.length; i++){
+    const x = valores[i];
+    if (x === null || x === undefined || !isFinite(x)) continue;
+    v.push(x); w.push(pesos && isFinite(pesos[i]) ? pesos[i] : 0);
+  }
+  if (!v.length) return null;
+  const ord = v.slice().sort((a,b) => a - b);
+  let lo = cuantil(ord, .02), hi = cuantil(ord, .98), piv, tipo;
+  if (hi <= lo){ lo = ord[0]; hi = ord[ord.length-1] || lo + 1; if (hi <= lo) hi = lo + 1; }
+  if (conSigno){
+    const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1;
+    lo = -m; hi = m; piv = 0; tipo = "cero";
+  } else {
+    const sw = w.reduce((a,b) => a + b, 0);
+    if (sw > 0){ piv = v.reduce((a,x,i) => a + x * w[i], 0) / sw; tipo = "región"; }
+    else { piv = cuantil(ord, .5); tipo = "mediana"; }
+    const pad = (hi - lo) * .08;
+    if (pad > 0) piv = Math.min(Math.max(piv, lo + pad), hi - pad);
+  }
+  const tonos = dir === 1 ? DIV.slice().reverse() : DIV;
+  // `ord` viaja de vuelta —ya está calculado— porque el tooltip necesita saber a
+  // qué percentil corresponde un valor, y reordenar 25.698 manzanas en cada
+  // movimiento del mouse sería absurdo.
+  return {lo, piv, hi, tipo, tonos, ord,
+          min: ord[0], max: ord[ord.length-1],
+          recorte: ord[0] < lo || ord[ord.length-1] > hi, n: v.length};
+}
+/* Posición 0-1 de un valor sobre la rampa, con el pivote clavado en el 0,5:
+   es la misma curva que arma `expresionColor` para el mapa, así que el chip del
+   tooltip, la miniatura, la barra del comparativo y el polígono no pueden
+   discrepar de color. Estaba copiada tres veces con nombres distintos. */
+function posEnRampa(e, v){
+  const t = v <= e.piv ? (e.piv === e.lo ? .5 : .5 * (v - e.lo) / (e.piv - e.lo))
+                       : .5 + .5 * (v - e.piv) / (e.hi - e.piv);
+  return Math.max(0, Math.min(1, t));
+}
+function tonoDe(e, v){
+  if (!e || v === null || v === undefined || !isFinite(v))
+    return SIN_DATO[esOscuro() ? "oscuro" : "claro"];
+  return e.tonos[Math.round(posEnRampa(e, v) * (e.tonos.length - 1))];
+}
+/* Proporción de la muestra que queda ESTRICTAMENTE por debajo de `v`. Búsqueda
+   binaria sobre el `ord` que ya trae la escala. */
+function percentil(ord, v){
+  if (!ord || !ord.length || v === null || !isFinite(v)) return null;
+  let lo = 0, hi = ord.length;
+  while (lo < hi){ const md = (lo + hi) >> 1; if (ord[md] < v) lo = md + 1; else hi = md; }
+  return lo / ord.length;
+}
+/* Expresión de color para MapLibre: se construye el degradé con paradas
+   equiespaciadas a cada lado del pivote, que es como se comporta un
+   scaleDiverging (el pivote cae en el 0,5 de la rampa, no en el medio numérico). */
+function expresionColor(e, campo){
+  if (!e) return SIN_DATO[esOscuro() ? "oscuro" : "claro"];
+  const n = e.tonos.length, mitad = (n - 1) / 2, paradas = [];
+  for (let i = 0; i < n; i++){
+    const t = i / (n - 1);
+    const val = t <= .5 ? e.lo + (e.piv - e.lo) * (t / .5)
+                        : e.piv + (e.hi - e.piv) * ((t - .5) / .5);
+    paradas.push(val, e.tonos[i]);
+  }
+  // saneo: las paradas deben ser estrictamente crecientes o MapLibre tira error
+  for (let i = 2; i < paradas.length; i += 2)
+    if (paradas[i] <= paradas[i-2]) paradas[i] = paradas[i-2] + 1e-9;
+  return ["case", ["==", ["get", campo], null], SIN_DATO[esOscuro() ? "oscuro" : "claro"],
+          ["interpolate", ["linear"], ["to-number", ["get", campo]], ...paradas]];
+}
+
+/* ── FORMATO ─────────────────────────────────────────────────────────────── */
+const nf = (v, d) => v === null || v === undefined || !isFinite(v) ? "s/d"
+  : (+v).toLocaleString("es-BO", {minimumFractionDigits: d, maximumFractionDigits: d});
+function fmt(v, u){
+  if (v === null || v === undefined || !isFinite(v)) return "s/d";
+  if (u === "hab" || u === "viv") return nf(Math.round(v), 0);
+  if (u === "%") return nf(v, 1) + "%";
+  if (u === "pp") return (v > 0 ? "+" : "") + nf(v, 1) + " pp";
+  return nf(v, 1) + (u ? " " + u : "");
+}
+
+/* ── MAPA ────────────────────────────────────────────────────────────────────
+   El mapa se crea dentro de un try: si el dispositivo no da contexto WebGL
+   —aceleración desactivada, drivers viejos, un headless— MapLibre TIRA en el
+   constructor. Estando en el tope del script eso mataba la página entera y el
+   usuario veía una pantalla en blanco en vez de perder sólo el mapa. Ahora el
+   tablero degrada: el panel, la ficha y las cifras siguen funcionando. */
+/* MAPA BASE. Al bajar a manzana el polígono solo no dice nada: sin calles ni
+   ríos no se sabe qué barrio se está mirando y el zoom deja de tener sentido.
+   Teselas CARTO (las mismas que ya usa el Observatorio Urbano), en versión
+   clara y oscura para acompañar el tema. Es la única dependencia externa del
+   tablero además de la tipografía. */
+const BASE = {
+  claro: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  oscuro: "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+};
+const ATRIB = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>';
+/* Las DOS bases van en el estilo desde el arranque y se alterna la visibilidad.
+   Cambiar de tema con `setStyle()` sería lo obvio y está mal: eso reemplaza el
+   estilo entero y se lleva puestas las capas de municipios y manzanas, que
+   habría que volver a agregar y repintar. */
+function estiloBase(oscuro){
+  const raster = (id, url, vis, op) => ({
+    id, type: "raster", source: id, layout: {visibility: vis},
+    paint: {"raster-opacity": op, "raster-saturation": -.78}
+  });
+  return {
+    version: 8,
+    sources: {
+      base_claro: {type: "raster", tiles: [BASE.claro], tileSize: 256, attribution: ATRIB},
+      base_oscuro: {type: "raster", tiles: [BASE.oscuro], tileSize: 256, attribution: ATRIB},
+    },
+    layers: [
+      {id: "fondo", type: "background",
+       paint: {"background-color": oscuro ? "#0b1318" : "#f2efe8"}},
+      raster("base_claro", BASE.claro, oscuro ? "none" : "visible", .92),
+      raster("base_oscuro", BASE.oscuro, oscuro ? "visible" : "none", .78),
+    ]
+  };
+}
+try {
+  map = new maplibregl.Map({
+    container: "map",
+    style: estiloBase(esOscuro()),
+    center: [-63.05, -17.72], zoom: 9.2, attributionControl: {compact: true},
+    maxZoom: 18, minZoom: 7
+  });
+  const ctrl = document.querySelector(".maplibregl-ctrl-top-right");
+  if (ctrl) ctrl.style.display = "none";
+} catch (err) {
+  sinMapa = true;
+  console.warn("Sin contexto WebGL: el mapa no se dibuja, el resto sí.", err);
+  document.getElementById("map").innerHTML =
+    '<div style="display:grid;place-items:center;height:100%;padding:2rem;text-align:center;' +
+    'color:var(--suave);font-size:.78rem;line-height:1.6">Este navegador no pudo iniciar el mapa' +
+    ' (WebGL no disponible).<br>Los indicadores y las cifras de la derecha siguen funcionando.</div>';
+}
+document.getElementById("z-in").onclick = () => map && map.zoomIn();
+document.getElementById("z-out").onclick = () => map && map.zoomOut();
+document.getElementById("z-rst").onclick = () => encuadrar();
+
+/* Bandera puesta APENAS se construye el mapa, antes de cualquier fetch: es la
+   única forma de no perder el evento. `map.loaded()` no sirve como sustituto
+   —devuelve false mientras falten teselas del mapa base, aunque `load` ya haya
+   disparado hace rato— y suscribirse tarde a un evento que ya ocurrió deja las
+   capas sin agregar y el mapa vacío, sin ningún error en consola. */
+let mapListo = false;
+if (map) map.on("load", () => { mapListo = true; });
+
+/* No se espera UN evento: se INTENTA, y si el estilo todavía no está se
+   reintenta con cada señal que MapLibre emita. Depender sólo de `load` falló de
+   dos formas distintas: si ya había disparado, suscribirse llegaba tarde; y en
+   contextos donde el WebGL es limitado `load` / `style.load` / `isStyleLoaded()`
+   no llegan nunca, así que las capas no se agregaban jamás y el mapa quedaba
+   con el fondo solo, sin un error que lo delatara. Intentar y reintentar es
+   feo de leer y es lo único que se comporta igual en todos lados. */
+function cuandoListo(fn){
+  if (!map) return;
+  let hecho = false;
+  const intenta = () => {
+    if (hecho) return true;
+    try {
+      fn();
+      hecho = true;
+      mapListo = true;
+      return true;
+    } catch (e) {
+      return false;           // el estilo aún no acepta capas
+    }
+  };
+  if (intenta()) return;
+  ["load", "style.load", "styledata", "idle"].forEach(ev => map.on(ev, intenta));
+  let intentos = 0;
+  const t = setInterval(() => {
+    if (intenta() || ++intentos > 40) clearInterval(t);
+  }, 150);
+}
+
+/* bbox de cualquier geometría GeoJSON, sin suponer si es Polygon o MultiPolygon:
+   se baja hasta encontrar pares [lon,lat]. */
+function bboxDe(coords){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  (function rec(a){
+    if (typeof a[0] === "number"){
+      if (a[0] < x0) x0 = a[0]; if (a[0] > x1) x1 = a[0];
+      if (a[1] < y0) y0 = a[1]; if (a[1] > y1) y1 = a[1];
+    } else a.forEach(rec);
+  })(coords);
+  return isFinite(x0) ? [[x0, y0], [x1, y1]] : null;
+}
+
+let BBOX = null;
+function encuadrar(){ if (BBOX && map) map.fitBounds(BBOX, {padding: {top: 80, bottom: 150, left: 40, right: 40}, duration: 700}); }
+
+/* TOOLTIP. Es un div propio y no el `Popup` de MapLibre: el Popup impone su
+   contenedor, su flecha y su cierre, y para vestirlo como el resto del
+   ecosistema había que pelearle el estilo. El molde `#pop` (.pn/.pd/.pv/.pr) ya
+   viene extraído del Atlas en `estilo-atlas.css`, así que el tooltip de acá se
+   lee igual que el del Atlas Socioeconómico y el Fiscal — que es justamente lo
+   que hace que el ecosistema se sienta uno. */
+const popEl = document.getElementById("pop");
+
+/* ── CARGA ───────────────────────────────────────────────────────────────── */
+Promise.all([
+  fetch("datos/catalogo_tablero.json").then(r => r.json()),
+  fetch("datos/municipios.json").then(r => r.json()),
+  fetch("datos/fiscal.json").then(r => r.json()),
+  fetch("datos/municipios.geojson").then(r => r.json()),
+  fetch("datos/region.geojson").then(r => r.json()),
+  fetch("datos/mini.json").then(r => r.json()),
+]).then(([cat, mun, fis, gmun, greg, mini]) => {
+  CAT = cat; MUN = mun; FIS = fis; MINI = mini;
+  anio_i = FIS.anios.length - 1;
+  MUN.forEach(m => { m.geom = gmun.features.find(f => f.properties.sigep === m.sigep); });
+
+  // `.flat(3)` NO alcanza para un MultiPolygon: deja arrays anidados adentro y
+  // los mínimos/máximos salían basura — el mapa arrancaba encuadrado sobre
+  // Chuquisaca. Se recorre hasta llegar a los pares de números, sin suponer
+  // profundidad.
+  BBOX = bboxDe(greg.features[0].geometry.coordinates);
+
+  // El PANEL se monta apenas llegan los datos, sin esperar al mapa. Tenerlo
+  // dentro de `map.on("load")` lo ataba al contexto WebGL: si la GPU no da
+  // (headless, drivers viejos, un móvil con aceleración desactivada) la página
+  // quedaba en blanco entera en vez de perder sólo el mapa. Además así el
+  // catálogo es verificable sin navegador con GPU.
+  montarCategorias();
+  elegirCategoria(CAT.grupos[0].key);
+  document.getElementById("cober").textContent = CAT.niveles.municipio.cobertura;
+  document.body.setAttribute("data-listo", JSON.stringify({
+    grupos: CAT.grupos.length,
+    indicadores: CAT.grupos.reduce((a, g) => a + g.indicadores.length, 0),
+    municipios: MUN.length, gestiones: FIS.anios.length
+  }));
+
+  /* ⚠ NO usar `map.on("load", …)` acá. Este código corre dentro del .then() de
+     los fetch, y con un estilo inline sin teselas MapLibre dispara `load` casi
+     de inmediato — normalmente ANTES de que los datos lleguen. `load` se emite
+     una sola vez: suscribirse después es suscribirse a algo que ya pasó, y las
+     capas no se agregaban nunca. El mapa quedaba vacío sin ningún error. */
+  if (map) cuandoListo(() => {
+    /* Idempotente a propósito: `cuandoListo` puede reintentar esta función
+       entera, y si al segundo intento `addSource` tirara "ya existe" el bloque
+       quedaría a medias para siempre — las capas de manzanas nunca se
+       agregarían y el mapa se vería gris de "sin dato". */
+    const nuevaFuente = (id, def) => { if (!map.getSource(id)) map.addSource(id, def); };
+    const nuevaCapa = def => { if (!map.getLayer(def.id)) map.addLayer(def); };
+    nuevaFuente("region", {type: "geojson", data: greg});
+    nuevaCapa({id: "region-halo", type: "line", source: "region",
+      paint: {"line-color": "#8aa0ab", "line-width": 1.2, "line-opacity": .5}});
+    nuevaFuente("mun", {type: "geojson", data: gmun, promoteId: "sigep"});
+    // Opacidades pensadas para que el mapa base se vea DEBAJO: a nivel municipio
+    // el relleno manda (son 9 áreas grandes y la referencia importa poco); a
+    // nivel manzana se afloja, porque ahí la calle de al lado es justamente el
+    // dato que le falta al lector para ubicarse.
+    nuevaCapa({id: "mun-fill", type: "fill", source: "mun",
+      paint: {"fill-color": SIN_DATO.claro, "fill-opacity": OPACIDAD.mun}});
+    nuevaCapa({id: "mun-line", type: "line", source: "mun",
+      paint: {"line-color": esOscuro() ? "#0b1318" : "#ffffff",
+              "line-width": 1.1, "line-opacity": .55}});
+    nuevaCapa({id: "mun-sel", type: "line", source: "mun",
+      paint: {"line-color": "#ee9b00", "line-width": 2.4},
+      filter: ["==", ["get", "sigep"], ""]});
+    nuevaFuente("mz", {type: "geojson", data: {type: "FeatureCollection", features: []}});
+    nuevaCapa({id: "mz-fill", type: "fill", source: "mz",
+      paint: {"fill-color": SIN_DATO.claro, "fill-opacity": 0}, layout: {visibility: "none"}});
+    nuevaCapa({id: "mz-line", type: "line", source: "mz",
+      paint: {"line-color": esOscuro() ? "#0b1318" : "#ffffff",
+              "line-width": ["interpolate", ["linear"], ["zoom"], 11, .15, 15, .7],
+              "line-opacity": .3},
+      layout: {visibility: "none"}});
+    encuadrar();
+    interacciones();
+    pintar();                 // el panel ya eligió indicador; acá recién hay capas
+    // Las manzanas se bajan EN SEGUNDO PLANO apenas el mapa está en pie. Son
+    // 4,2 MB comprimidos: esperarlos recién al apretar el botón hacía que el
+    // cambio de nivel se sintiera trabado. Cuando llegan, si el usuario ya
+    // estaba en manzana, se enganchan solas.
+    setTimeout(() => cargarManzanas().then(() => {
+      aplicarNivelAlMapa();
+      if (nivel === "manzana") pintar();
+    }), 1200);
+  });
+});
+
+/* ── PANEL DE CATEGORÍAS E INDICADORES ───────────────────────────────────── */
+function montarCategorias(){
+  const d = document.getElementById("cat-drop");
+  d.innerHTML = CAT.grupos.map(g =>
+    `<div class="cat-op" data-g="${g.key}"><span>${g.label}</span><span class="co-n">${g.indicadores.length}</span></div>`).join("");
+  d.querySelectorAll(".cat-op").forEach(o => o.onclick = () => {
+    elegirCategoria(o.dataset.g);
+    document.getElementById("cat-bar").classList.remove("open");
+  });
+  const bar = document.getElementById("cat-bar");
+  document.getElementById("cat-btn").onclick = e => { e.stopPropagation(); bar.classList.toggle("open"); };
+  document.addEventListener("click", () => bar.classList.remove("open"));
+}
+function elegirCategoria(key){
+  cat_actual = CAT.grupos.find(g => g.key === key) || CAT.grupos[0];
+  document.querySelector("#cat-btn .cn").textContent = cat_actual.label;
+  document.getElementById("kick-n").textContent = `${CAT.grupos.length} categorías · 193 indicadores`;
+  document.querySelectorAll("#cat-drop .cat-op").forEach(o =>
+    o.classList.toggle("on", o.dataset.g === cat_actual.key));
+  montarIndicadores();
+  const primero = cat_actual.indicadores.find(i => disponible(i)) || cat_actual.indicadores[0];
+  if (primero) elegirIndicador(primero.key);
+}
+/* Un indicador está disponible si existe en el nivel activo. */
+const disponible = i => nivel === "municipio" ? !!i.k_mun : !!i.k_mz;
+
+/* Valor del indicador para un municipio, sirva o no a nivel municipal: si el
+   indicador sólo existe por manzana se usa el agregado URBANO, que es lo único
+   que hay. La miniatura entonces muestra la región tal como se vería al bajar. */
+function valorParaMini(m, ind){
+  if (ind.k_mun) return valorMunicipal(m, ind);
+  return m.urbano ? m.urbano[ind.k_mz] : null;
+}
+/* Miniatura de la región pintada con el indicador de la tarjeta, igual que en
+   los atlas nacionales: 9 siluetas precalculadas en un lienzo 100×100. */
+function miniSVG(ind){
+  if (!MINI) return "";
+  const vals = MUN.map(m => valorParaMini(m, ind));
+  const pes = MUN.map(pesoMunicipal);
+  const e = escala(vals, pes, ind.dir, !!ind.div, ind.unit);
+  const p = MUN.map((m, k) => {
+    const d = MINI.paths[m.sigep];
+    return d ? `<path d="${d}" fill="${tonoDe(e, vals[k])}"/>` : "";
+  }).join("");
+  return `<svg class="mini" viewBox="${MINI.viewBox}" preserveAspectRatio="xMidYMid meet">${p}</svg>`;
+}
+
+/* Los indicadores se separan por NIVEL dentro de cada categoría. Mezclados, el
+   lector no sabe cuáles le van a servir cuando se acerque, y descubre que un
+   indicador no baja recién al intentarlo. Arriba van los que llegan a la
+   manzana —que son la razón de existir de este tablero— y abajo los que se
+   quedan en el municipio. */
+function tarjeta(i, n){
+  const ok = disponible(i);
+  const badge = i.nivel === "ambos" ? '<span class="co-n">municipio + manzana</span>'
+    : i.nivel === "manzana" ? '<span class="co-n">sólo manzana</span>'
+    : i.fuente === "fiscal" ? '<span class="co-n">fiscal · 10 gestiones</span>'
+    : '<span class="co-n">sólo municipio</span>';
+  return `<div class="ind${ok ? "" : " off"}" data-k="${i.key}" style="--d:${Math.min(n,14)*14}ms">
+    <div><div class="i-nm">${i.label}</div><div class="i-df">${i.desc || ""}</div>${badge}</div>
+    ${miniSVG(i)}</div>`;
+}
+function montarIndicadores(){
+  const l = document.getElementById("lista");
+  const baja = cat_actual.indicadores.filter(i => i.k_mz);
+  const nobaja = cat_actual.indicadores.filter(i => !i.k_mz);
+  let h = "", n = 0;
+  if (baja.length){
+    h += `<div class="nivsep">Con detalle por manzana · ${baja.length}</div>`;
+    h += baja.map(i => tarjeta(i, n++)).join("");
+  }
+  if (nobaja.length){
+    h += `<div class="nivsep">Sólo a nivel municipio · ${nobaja.length}</div>`;
+    h += nobaja.map(i => tarjeta(i, n++)).join("");
+  }
+  l.innerHTML = h;
+  l.querySelectorAll(".ind").forEach(el => el.onclick = () => elegirIndicador(el.dataset.k));
+  marcarActivo();
+}
+function marcarActivo(){
+  document.querySelectorAll("#lista .ind").forEach(el =>
+    el.classList.toggle("on", el.dataset.k === (ind_actual && ind_actual.key)));
+}
+
+function elegirIndicador(key){
+  const i = cat_actual.indicadores.find(x => x.key === key);
+  if (!i) return;
+  ind_actual = i;
+  marcarActivo();
+  document.getElementById("p-sub").textContent = i.desc || i.label;
+
+  // El toggle de manzana se apaga cuando el indicador no baja, y se explica.
+  const bMz = document.querySelector('#niv button[data-n="manzana"]');
+  bMz.disabled = !i.k_mz;
+  if (!i.k_mz && nivel === "manzana") cambiarNivel("municipio");
+
+  document.getElementById("anios").classList.toggle("on", i.fuente === "fiscal");
+  if (i.fuente === "fiscal") montarAnios();
+  avisar(i);
+  pintar();
+}
+function montarAnios(){
+  const a = document.getElementById("anios");
+  a.innerHTML = FIS.anios.map((y, n) =>
+    `<button data-i="${n}" class="${n === anio_i ? "on" : ""}">${y}</button>`).join("");
+  a.querySelectorAll("button").forEach(b => b.onclick = () => {
+    anio_i = +b.dataset.i; montarAnios(); pintar();
+  });
+}
+function avisar(i){
+  const el = document.getElementById("aviso");
+  let txt = "";
+  if (i.fuente === "fiscal")
+    txt = "<b>No baja a manzana.</b> No existe ejecución presupuestaria por manzano: el dato fiscal se publica por municipio.";
+  else if (i.par_manzana)
+    txt = `<b>Cambia de definición al bajar.</b> ${i.par_manzana.nota}`;
+  else if (i.par_municipal)
+    txt = `<b>Cambia de definición al subir.</b> ${i.par_municipal.nota}`;
+  else if (i.nivel === "manzana")
+    txt = "<b>Sólo existe a nivel de manzana.</b> No tiene equivalente publicado por municipio.";
+  el.innerHTML = txt;
+  el.classList.toggle("on", !!txt);
+}
+
+/* ── NIVEL ───────────────────────────────────────────────────────────────── */
+document.querySelectorAll("#niv button").forEach(b =>
+  b.onclick = () => { if (!b.disabled) cambiarNivel(b.dataset.n); });
+
+async function cambiarNivel(n){
+  if (n === nivel) return;
+  nivel = n;
+  document.querySelectorAll("#niv button").forEach(b => b.classList.toggle("on", b.dataset.n === n));
+  document.getElementById("cober").textContent = CAT.niveles[n].cobertura;
+  if (n === "manzana") await cargarManzanas();
+  aplicarNivelAlMapa();
+  // El botón sólo te lleva al otro lado de la banda de fundido; el cruce visual
+  // lo hace el zoom. Mirar 38.892 manzanas desde el encuadre regional es una
+  // mancha, no un mapa.
+  if (map){
+    if (n === "manzana" && map.getZoom() < Z1) map.easeTo({zoom: Z1 + .3, duration: 900});
+    if (n === "municipio" && map.getZoom() > Z0) map.easeTo({zoom: Z0 - .4, duration: 900});
+  }
+  // el indicador puede no existir en el nivel nuevo: se busca su par
+  if (ind_actual && !disponible(ind_actual)){
+    const par = ind_actual.par_manzana || ind_actual.par_municipal;
+    const dest = par && buscarPorClave(par.key);
+    if (dest){ elegirCategoriaDe(dest); elegirIndicador(dest.key); return; }
+    const alt = cat_actual.indicadores.find(disponible);
+    if (alt){ elegirIndicador(alt.key); return; }
+  }
+  montarIndicadores();
+  pintar();
+}
+/* Ajusta las capas al nivel activo. Con manzanas cargadas, ambas quedan visibles
+   y el fundido lo maneja el zoom; sin ellas, el municipio va sólido. */
+function aplicarNivelAlMapa(){
+  if (!map || !map.getSource("mz")) return;
+  const hayMz = !!mzTodas && nivel === "manzana";
+  map.setLayoutProperty("mz-fill", "visibility", hayMz ? "visible" : "none");
+  map.setLayoutProperty("mz-line", "visibility", hayMz ? "visible" : "none");
+  map.setPaintProperty("mun-fill", "fill-opacity",
+    hayMz ? fundido(OPACIDAD.mun, 0) : OPACIDAD.mun);
+  if (hayMz) map.setPaintProperty("mz-fill", "fill-opacity", fundido(0, OPACIDAD.mz));
+}
+
+function buscarPorClave(k){
+  for (const g of CAT.grupos)
+    for (const i of g.indicadores)
+      if (i.k_mun === k || i.k_mz === k) return i;
+  return null;
+}
+function elegirCategoriaDe(ind){
+  const g = CAT.grupos.find(g => g.indicadores.includes(ind));
+  if (g && g.key !== cat_actual.key){
+    cat_actual = g;
+    document.querySelector("#cat-btn .cn").textContent = g.label;
+    montarIndicadores();
+  }
+}
+
+/* Carga perezosa: 4,2 MB comprimidos en total, así que se bajan los nueve de
+   una vez la primera vez que se entra al nivel manzana, con barra de progreso.
+   Cargarlos por municipio al entrar a su bbox daba saltos al panear. */
+async function cargarManzanas(){
+  if (mzTodas) return;
+  const slugs = MUN.map(m => m.nombre.toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ /g, "_"));
+  const barra = document.querySelector("#carga i");
+  let hechos = 0;
+  const partes = await Promise.all(slugs.map(async (s, k) => {
+    const [geo, dat] = await Promise.all([
+      fetch(`datos/geo_${s}.geojson`).then(r => r.json()),
+      fetch(`datos/dat_${s}.json`).then(r => r.json())
+    ]);
+    mzCargadas[MUN[k].sigep] = dat;
+    geo.features.forEach(f => { f.properties.s = MUN[k].sigep; });
+    hechos++; barra.style.width = (100 * hechos / slugs.length) + "%";
+    return geo.features;
+  }));
+  mzTodas = {type: "FeatureCollection", features: partes.flat()};
+  if (map && map.getSource("mz")) map.getSource("mz").setData(mzTodas);
+  setTimeout(() => { barra.style.width = "0"; }, 400);
+}
+
+/* ── VALORES ─────────────────────────────────────────────────────────────── */
+function valorMunicipal(m, ind){
+  if (!ind.k_mun) return null;
+  if (ind.fuente === "fiscal"){
+    const e = FIS.entidades[m.sigep];
+    const s = e && e.s && e.s[ind.k_mun];
+    return s ? s[anio_i] : null;
+  }
+  return m.municipal ? m.municipal[ind.k_mun] : null;
+}
+function pesoMunicipal(m){
+  if (ind_actual && ind_actual.fuente === "fiscal"){
+    const e = FIS.entidades[m.sigep];
+    return e && e.pob ? e.pob[anio_i] : 0;
+  }
+  return m.municipal ? (m.municipal.pob_total || m.personas_urbano) : m.personas_urbano;
+}
+
+/* ── PINTAR ──────────────────────────────────────────────────────────────── */
+function pintar(){
+  if (!ind_actual) return;
+  const i = ind_actual;
+  /* La precondición para pintar es que la FUENTE exista, y nada más.
+     Tener `isStyleLoaded()` en esta condición fue el error que más costó
+     encontrar: en contextos con WebGL limitado devuelve false para siempre, así
+     que las capas se agregaban bien pero `pintar()` se saltaba el mapa entero y
+     todo quedaba del gris de "sin dato", sin ningún error. */
+  const conMapa = !!map && !!map.getSource("mun");
+  if (conMapa){
+    map.setPaintProperty("fondo", "background-color", esOscuro() ? "#0b1318" : "#f2efe8");
+  }
+
+  let e = null;
+  if (nivel === "municipio"){
+    const vals = MUN.map(m => valorMunicipal(m, i));
+    const pes = MUN.map(pesoMunicipal);
+    e = escala(vals, pes, i.dir, !!i.div, i.unit);
+    if (conMapa){
+      const src = map.getSource("mun");
+      const d = src._data;
+      d.features.forEach(f => {
+        const m = MUN.find(x => x.sigep === f.properties.sigep);
+        f.properties.v = m ? valorMunicipal(m, i) : null;
+      });
+      src.setData(d);
+      map.setPaintProperty("mun-fill", "fill-color", expresionColor(e, "v"));
+    }
+  } else {
+    const vals = [], pes = [];
+    for (const s in mzCargadas){
+      const d = mzCargadas[s], col = d.cols[i.k_mz], p = d.cols.personas;
+      if (!col) continue;
+      for (let k = 0; k < d.n; k++){ vals.push(col[k]); pes.push(p ? p[k] : 0); }
+    }
+    e = escala(vals, pes, i.dir, false, i.unit);
+    if (mzTodas && map && map.getSource("mz")){
+      mzTodas.features.forEach(f => {
+        const d = mzCargadas[f.properties.s];
+        const col = d && d.cols[i.k_mz];
+        f.properties.v = col ? col[f.properties.i] : null;
+      });
+      map.getSource("mz").setData(mzTodas);
+      map.setPaintProperty("mz-fill", "fill-color", expresionColor(e, "v"));
+    }
+  }
+  ESC = e;
+  termometro(e, i);
+  ficha(e, i);
+}
+
+/* ── LEYENDA ─────────────────────────────────────────────────────────────── */
+function termometro(e, i){
+  document.getElementById("tm-t").innerHTML = `${i.label} <small>${i.unit || ""}</small>`;
+  const bar = document.getElementById("tm-bar");
+  if (!e){ bar.style.background = "var(--linea)";
+    document.getElementById("tm-lo").textContent = "";
+    document.getElementById("tm-hi").textContent = "";
+    document.getElementById("tm-st").textContent = "sin datos"; return; }
+  bar.style.background = `linear-gradient(to right,${e.tonos.join(",")})`;
+  const cap = e.recorte;
+  document.getElementById("tm-lo").innerHTML = `<span class="cap">${cap ? "≤ " : ""}</span>${fmt(e.lo, i.unit)}`;
+  document.getElementById("tm-hi").innerHTML = `<span class="cap">${cap ? "≥ " : ""}</span>${fmt(e.hi, i.unit)}`;
+  bar.querySelectorAll(".tm-mk").forEach(m => m.remove());
+  const mk = document.createElement("div"); mk.className = "tm-mk"; mk.style.left = "50%";
+  bar.appendChild(mk);
+  const unidad = nivel === "municipio" ? "municipios" : "manzanas con dato";
+  document.getElementById("tm-st").innerHTML =
+    `n <b>${nf(e.n,0)}</b> ${unidad} · mín <b>${fmt(e.min,i.unit)}</b> · ${e.tipo} <b>${fmt(e.piv,i.unit)}</b> · máx <b>${fmt(e.max,i.unit)}</b>`;
+}
+
+/* ── COMPARATIVO ENTRE MUNICIPIOS ────────────────────────────────────────────
+   Barras horizontales, una por municipio, ordenadas por valor y pintadas con la
+   MISMA escala del mapa —así el color de la barra y el del polígono coinciden y
+   no hay que traducir entre los dos. La línea punteada es el pivote de la
+   región, que es contra lo que se compara cada municipio.
+   Se dibuja a mano en SVG y no con una librería de gráficos: son 9 barras, y
+   sumar una dependencia para esto sería pagar 200 KB por nada. */
+function comparativo(e, ind){
+  const filas = MUN.map(m => ({m, v: valorParaMini(m, ind)}))
+    .sort((a, b) => (b.v === null ? -Infinity : b.v) - (a.v === null ? -Infinity : a.v));
+  const con = filas.filter(f => f.v !== null && isFinite(f.v));
+  if (!con.length) return '<div class="sin">Sin datos para este indicador.</div>';
+
+  const vmin = Math.min(0, ...con.map(f => f.v)), vmax = Math.max(...con.map(f => f.v));
+  const rango = (vmax - vmin) || 1;
+  /* LX deja sitio al nombre y VX corta la barra antes del borde, pero eso solo
+     no alcanza: la CIFRA se dibuja después de la barra y su ancho depende de
+     cuántos dígitos tenga. Con "1.610.982" se salía del lienzo. Se estima el
+     ancho del texto y se ancla la etiqueta para que nunca pase de W. */
+  const H = 11.5, W = 100, LX = 35, VX = 78;  // en unidades de viewBox
+  const anchoTexto = s => s.length * 2.1;     // ~0,53 em a 3,9px de tipografía
+  const alto = filas.length * H + 8;
+  const x = v => LX + ((v - vmin) / rango) * (VX - LX);
+
+  let s = "";
+  filas.forEach((f, k) => {
+    const y = k * H + 3, sel_ = f.m.sigep === sel;
+    const corto = f.m.nombre.length > 16 ? f.m.nombre.slice(0, 15) + "…" : f.m.nombre;
+    s += `<text x="0" y="${y + 5.4}" class="cmp-n${sel_ ? " sel" : ""}">${corto}</text>`;
+    if (f.v !== null && isFinite(f.v)){
+      const x1 = x(f.v), txt = fmt(f.v, ind.unit);
+      const tx = Math.min(x1 + 1.4, W - anchoTexto(txt));
+      s += `<rect x="${LX}" y="${y + 1}" width="${Math.max(.6, x1 - LX)}" height="6"
+              fill="${tonoDe(e, f.v)}" ${sel_ ? 'stroke="#ee9b00" stroke-width="0.8"' : ""}/>`;
+      s += `<text x="${tx}" y="${y + 5.4}" class="cmp-v">${txt}</text>`;
+    } else {
+      s += `<text x="${LX}" y="${y + 5.4}" class="cmp-v">s/d</text>`;
+    }
+  });
+  if (e){
+    const xp = x(e.piv);
+    if (xp > LX && xp < VX)
+      s += `<line x1="${xp}" y1="1.5" x2="${xp}" y2="${filas.length * H + 1.5}" class="cmp-piv"/>`;
+  }
+  return `<div class="cmp-t">Comparación entre municipios<span>${e ? e.tipo + " " + fmt(e.piv, ind.unit) : ""}</span></div>
+    <svg class="cmp" viewBox="0 0 ${W} ${alto}" preserveAspectRatio="xMidYMin meet">${s}</svg>`;
+}
+
+/* ── SERIE FISCAL: LAS 10 GESTIONES ──────────────────────────────────────────
+   El selector de gestiones ya cambiaba el mapa, pero mostraba UNA gestión por
+   vez: para ver la trayectoria había que apretar los diez años de a uno y
+   acordarse de los números. Acá el municipio elegido y la región van sobre el
+   mismo eje —misma unidad, así que UN solo eje: dos escalas en un gráfico
+   inventan una correlación que no está en los datos— y la gestión activa queda
+   marcada sobre la línea.
+
+   La línea de la región NO es el pivote de `escala()`: ese viene recortado al
+   dominio [lo+pad, hi-pad] para que la leyenda no se pegue a los extremos, y
+   acá hace falta la magnitud real. Es el promedio ponderado por población de
+   cada gestión, que es el mismo criterio con el que el mapa fija su pivote.
+
+   Se dibuja a mano en SVG, igual que el comparativo y por la misma razón: son
+   veinte puntos y una librería de gráficos costaría 200 KB por nada. */
+function serieDe(sigep, ind){
+  const e = FIS.entidades[sigep];
+  const s = e && e.s && e.s[ind.k_mun];
+  return Array.isArray(s) ? s : null;
+}
+function serieRegion(ind){
+  return FIS.anios.map((_, k) => {
+    let num = 0, den = 0;
+    for (const m of MUN){
+      const e = FIS.entidades[m.sigep];
+      const s = e && e.s && e.s[ind.k_mun];
+      if (!Array.isArray(s)) continue;
+      const v = s[k], p = e.pob ? e.pob[k] : 0;
+      if (v === null || !isFinite(v) || !isFinite(p) || p <= 0) continue;
+      num += v * p; den += p;
+    }
+    return den > 0 ? num / den : null;
+  });
+}
+function serieSVG(m, ind){
+  const sm = serieDe(m.sigep, ind);
+  if (!sm) return "";
+  const sr = serieRegion(ind), n = FIS.anios.length;
+  const hay = v => v !== null && v !== undefined && isFinite(v);
+  const todos = sm.filter(hay).concat(sr.filter(hay));
+  if (!todos.length) return '<div class="sin">Sin serie para este indicador.</div>';
+
+  let dmin = Math.min(...todos), dmax = Math.max(...todos);
+  // Una serie plana tiene rango 0 y dividiría por cero al escalar; el `||` en
+  // cadena degrada a un padding relativo y, si el valor también es 0, a 1.
+  const pad = (dmax - dmin) * .12 || Math.abs(dmax) * .1 || 1;
+  dmin -= pad; dmax += pad;
+
+  const W = 100, LX = 19, RX = 98, T = 5, PH = 33, YB = T + PH, ALTO = 48;
+  const paso = (RX - LX) / (n - 1);
+  const X = k => LX + k * paso;
+  const Y = v => YB - (v - dmin) / (dmax - dmin) * PH;
+
+  /* Un hueco en la serie CORTA el trazo en vez de saltarlo con una recta: unir
+     los dos extremos de un año sin dato dibuja una interpolación inventada. */
+  const camino = s => {
+    let d = "", unido = false;
+    s.forEach((v, k) => {
+      if (!hay(v)) { unido = false; return; }
+      d += (unido ? "L" : "M") + X(k).toFixed(2) + " " + Y(v).toFixed(2) + " ";
+      unido = true;
+    });
+    return d.trim();
+  };
+
+  let g = `<line class="ser-base" x1="${LX}" y1="${YB}" x2="${RX}" y2="${YB}"/>`;
+  g += `<text class="ser-tk" x="${LX - 2}" y="${T + 2.6}" text-anchor="end">${fmt(dmax, ind.unit)}</text>`;
+  g += `<text class="ser-tk" x="${LX - 2}" y="${YB}" text-anchor="end">${fmt(dmin, ind.unit)}</text>`;
+  g += `<path class="ser-l reg" d="${camino(sr)}"/>`;
+  g += `<path class="ser-l mun" d="${camino(sm)}"/>`;
+  sm.forEach((v, k) => { if (hay(v))
+    g += `<circle class="ser-d${k === anio_i ? " on" : ""}" cx="${X(k).toFixed(2)}" cy="${Y(v).toFixed(2)}" r="${k === anio_i ? 1.7 : .85}"/>`; });
+
+  // Una sola cifra rotulada —la de la gestión activa—: un número sobre cada uno
+  // de los diez puntos es ruido y no se lee.
+  const vSel = sm[anio_i];
+  if (hay(vSel)){
+    const txt = fmt(vSel, ind.unit), tw = txt.length * 2.25;   // ~0,53 em a 4,2px
+    const cx = Math.min(Math.max(X(anio_i), LX + tw / 2), W - tw / 2);
+    const cy = Y(vSel) - T > 8 ? Y(vSel) - 3.2 : Y(vSel) + 5.6;
+    g += `<text class="ser-v" x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle">${txt}</text>`;
+  }
+
+  // Eje: los extremos y la gestión activa. Los diez años no entran en el ancho
+  // del panel, y la activa se omite cuando pisaría a un extremo.
+  const etiq = new Set([0, n - 1]);
+  if (anio_i >= 2 && anio_i <= n - 3) etiq.add(anio_i);
+  [...etiq].sort((a, b) => a - b).forEach(k => {
+    const anc = k === 0 ? "start" : k === n - 1 ? "end" : "middle";
+    const px = k === 0 ? LX : k === n - 1 ? RX : X(k);
+    g += `<text class="ser-ax${k === anio_i ? " on" : ""}" x="${px.toFixed(2)}" y="${YB + 5.4}" text-anchor="${anc}">${FIS.anios[k]}</text>`;
+  });
+
+  // Bandas de captura AL FINAL, para que queden encima y reciban el hover. Cada
+  // una toma el alto completo del área de dibujo: no hay que acertarle al punto.
+  FIS.anios.forEach((y, k) => {
+    const x0 = Math.max(LX, X(k) - paso / 2), x1 = Math.min(RX, X(k) + paso / 2);
+    const vm = hay(sm[k]) ? fmt(sm[k], ind.unit) : "s/d";
+    const vr = hay(sr[k]) ? fmt(sr[k], ind.unit) : "s/d";
+    g += `<g class="ser-band" data-i="${k}"><title>${y} · ${m.nombre} ${vm} · región ${vr}</title>` +
+         `<rect x="${x0.toFixed(2)}" y="${T}" width="${(x1 - x0).toFixed(2)}" height="${PH}"/>` +
+         `<line class="ser-gd" x1="${X(k).toFixed(2)}" y1="${T}" x2="${X(k).toFixed(2)}" y2="${YB}"/></g>`;
+  });
+
+  const corto = m.nombre.length > 18 ? m.nombre.slice(0, 17) + "…" : m.nombre;
+  return `<div class="cmp-t">Serie fiscal<span>${FIS.anios[0]}–${FIS.anios[n - 1]}</span></div>
+    <svg class="ser" viewBox="0 0 ${W} ${ALTO}" preserveAspectRatio="xMidYMin meet">${g}</svg>
+    <div class="ser-lg"><span><i></i><b>${corto}</b></span><span><i class="reg"></i>región</span></div>`;
+}
+
+/* ── FICHA ───────────────────────────────────────────────────────────────── */
+function ficha(e, i){
+  const g = document.getElementById("kgrid");
+  document.getElementById("cmp").innerHTML = comparativo(e, i);
+  if (sel){
+    const m = MUN.find(x => x.sigep === sel);
+    /* La serie es la trayectoria de UN municipio, así que sólo aparece con uno
+       elegido. Sin selección el panel muestra la comparación entre los nueve,
+       que es la lectura por defecto de una región. */
+    document.getElementById("serie").innerHTML =
+      i.fuente === "fiscal" ? serieSVG(m, i) : "";
+    document.getElementById("d-mun").textContent = m.nombre;
+    document.getElementById("d-sub").textContent =
+      `${m.ambito === "núcleo" ? "Núcleo metropolitano" : "Área de influencia"} · ${nf(m.municipal ? m.municipal.pob_total : m.personas_urbano, 0)} habitantes`;
+    g.innerHTML = cat_actual.indicadores.filter(x => x.k_mun).map((x, n) => {
+      const v = valorMunicipal(m, x);
+      const todos = MUN.map(y => valorMunicipal(y, x)).filter(z => z !== null && z !== undefined);
+      const pes = MUN.map(pesoMunicipal);
+      const reg = escala(MUN.map(y => valorMunicipal(y, x)), pes, x.dir, !!x.div, x.unit);
+      const dif = v !== null && reg ? v - reg.piv : null;
+      return `<div class="kpi ${x.key === i.key ? "on" : ""}" data-k="${x.key}" style="--d:${Math.min(n,14)*14}ms">
+        <div class="k-l">${x.label}</div><div class="k-v">${fmt(v, x.unit)}</div>
+        <div class="k-c"><span>región <b>${reg ? fmt(reg.piv, x.unit) : "s/d"}</b></span>
+        ${flecha(dif, x.unit)}</div></div>`;
+    }).join("");
+  } else {
+    document.getElementById("serie").innerHTML = "";
+    document.getElementById("d-mun").textContent = "Región Metropolitana";
+    document.getElementById("d-sub").textContent = "9 municipios · 2.215.919 personas";
+    g.innerHTML = MUN.slice().sort((a,b) => {
+      const va = valorMunicipal(a, i), vb = valorMunicipal(b, i);
+      return (vb === null ? -1e9 : vb) - (va === null ? -1e9 : va);
+    }).map((m, n) => {
+      const v = valorMunicipal(m, i);
+      return `<div class="kpi" data-s="${m.sigep}" style="--d:${Math.min(n,14)*14}ms">
+        <div class="k-l">${m.nombre}</div><div class="k-v">${fmt(v, i.unit)}</div>
+        <div class="k-c"><span>${m.ambito}</span><span>${nf(m.manzanas,0)} manzanas</span></div></div>`;
+    }).join("");
+  }
+  g.querySelectorAll(".kpi[data-s]").forEach(el => el.onclick = () => seleccionar(el.dataset.s));
+  g.querySelectorAll(".kpi[data-k]").forEach(el => el.onclick = () => elegirIndicador(el.dataset.k));
+  /* Clicar un año del gráfico hace lo mismo que su botón de gestión. Con eso
+     cada valor de la serie se alcanza SIN hover —al fijar la gestión, la cifra
+     exacta queda rotulada sobre la línea y en las tarjetas de abajo—, así que
+     el tooltip agrega lectura pero no es la única forma de leer el dato. */
+  document.querySelectorAll("#serie .ser-band").forEach(el => el.onclick = () => {
+    anio_i = +el.dataset.i; montarAnios(); pintar();
+  });
+}
+
+function seleccionar(s){
+  sel = sel === s ? null : s;
+  if (map && map.getSource("mun")) map.setFilter("mun-sel", ["==", ["get", "sigep"], sel || ""]);
+  if (sel){
+    const m = MUN.find(x => x.sigep === sel);
+    if (m && m.geom && map){
+      // bbox del municipio recorriendo sus coordenadas: sirve para Polygon y
+      // MultiPolygon sin ramificar por tipo de geometría.
+      const b = bboxDe(m.geom.geometry.coordinates);
+      if (b) map.fitBounds(b, {padding: 90, duration: 700});
+    }
+  } else encuadrar();
+  pintar();
+}
+
+/* ── TOOLTIP ─────────────────────────────────────────────────────────────────
+   Un valor suelto no dice nada: 58,3% de agua por cañería puede ser bueno o malo
+   según contra qué se lea. Así que el tooltip no muestra el número, muestra el
+   número EN SU LUGAR — el tono que le tocó en la rampa, dónde cae dentro del
+   rango, y una o dos referencias explícitas (la región, el urbano del municipio,
+   el puesto entre los nueve, el percentil entre las manzanas).
+   Mismo molde que el Atlas Socioeconómico y el Fiscal (`#pop` en la hoja
+   extraída), así que los tres se leen igual. */
+
+/* Los nombres de localidad vienen del INE en MAYÚSCULAS. Las partículas van en
+   minúscula salvo al principio: "SAN MIGUEL DE LOS JUNOS" → "San Miguel de los
+   Junos", no "San Miguel De Los Junos". */
+const PARTICULAS = new Set(["de","del","la","las","los","el","y","en"]);
+function tituloCaso(s){
+  if (!s) return "";
+  return String(s).toLowerCase().split(/\s+/).map((w, k) =>
+    k > 0 && PARTICULAS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+/* La diferencia entre dos porcentajes NO es un porcentaje, son puntos
+   porcentuales: "▲ 3,5%" para un salto de 38,2% a 41,7% es otro número. */
+const unidadDif = u => u === "%" ? "pp" : u;
+function flecha(d, u){
+  if (d === null || d === undefined || !isFinite(d)) return "";
+  const uu = unidadDif(u);
+  /* Con unidad "pp" `fmt` antepone el signo, y acá el signo ya lo lleva la
+     flecha: una diferencia negativa salía como "▼ +5,5 pp", que se contradice
+     sola. Para el resto de unidades `fmt` sigue mandando (redondea los conteos,
+     pone el símbolo). */
+  const txt = uu === "pp" ? nf(Math.abs(d), 1) + " pp" : fmt(Math.abs(d), uu);
+  return `<span class="${d >= 0 ? "up" : "dn"}">${d > 0 ? "▲" : d < 0 ? "▼" : "="} ${txt}</span>`;
+}
+function tooltipHTML(p, esMz){
+  const i = ind_actual;
+  if (!i) return "";
+  const e = ESC;
+  const v = p.v === undefined || p.v === null ? null : +p.v;
+  const hay = v !== null && isFinite(v);
+
+  let nom, sub, filas = "", nota = "";
+
+  if (esMz){
+    const m = MUN.find(x => x.sigep === p.s), d = mzCargadas[p.s];
+    const k = p.i;
+    const loc = d && d.nombre ? tituloCaso(d.nombre[k]) : "";
+    const pers = d && d.cols.personas ? d.cols.personas[k] : null;
+    nom = loc || "Manzana";
+    // "Manzana en Porongo", no "Manzana · en Porongo": el municipio completa la
+    // frase, no es otro dato de la lista.
+    let cab = "Manzana";
+    if (loc && m && loc.toLowerCase() !== m.nombre.toLowerCase()) cab += " en " + m.nombre;
+    const bits = [cab];
+    if (pers !== null && isFinite(pers)) bits.push(nf(Math.round(pers), 0) + " hab.");
+    sub = bits.join(" · ");
+
+    // Referencia natural de una manzana: el agregado URBANO de su municipio, no
+    // la cifra municipal del INE, que incluye lo rural y no es comparable.
+    const ref = m && m.urbano ? m.urbano[i.k_mz] : null;
+    if (hay && ref !== null && ref !== undefined && isFinite(ref))
+      filas += `<div class="pr"><span>urbano de ${m.nombre}</span><span><b>${fmt(ref, i.unit)}</b> ${flecha(v - ref, i.unit)}</span></div>`;
+    const q = hay && e ? percentil(e.ord, v) : null;
+    if (q !== null)
+      filas += `<div class="pr"><span>en la región</span><span>supera al <b>${nf(Math.round(q * 100), 0)}%</b> de las manzanas</span></div>`;
+    if (!hay){
+      const cod = d && d.codigo ? d.codigo[k] : "";
+      nota = `Sin ficha. El INE no publica los datos de las manzanas más chicas, por privacidad.${cod ? ` <b>${cod}</b>` : ""}`;
+    }
+  } else {
+    const m = MUN.find(x => x.sigep === p.sigep);
+    if (!m) return "";
+    nom = m.nombre;
+    const pob = m.municipal ? m.municipal.pob_total : m.personas_urbano;
+    sub = (m.ambito === "núcleo" ? "Núcleo metropolitano" : "Área de influencia")
+        + (isFinite(pob) ? ` · ${nf(Math.round(pob), 0)} hab.` : "");
+
+    if (hay && e){
+      filas += `<div class="pr"><span>${e.tipo}</span><span><b>${fmt(e.piv, i.unit)}</b> ${flecha(v - e.piv, i.unit)}</span></div>`;
+      const otros = MUN.map(x => valorMunicipal(x, i)).filter(z => z !== null && z !== undefined && isFinite(z));
+      const puesto = otros.filter(z => z > v).length + 1;
+      filas += `<div class="pr"><span>puesto</span><span><b>${puesto}.º</b> más alto de ${otros.length}</span></div>`;
+    }
+    if (!hay) nota = "Sin dato publicado para este indicador.";
+  }
+
+  const kicker = i.label + (i.fuente === "fiscal" ? ` · ${FIS.anios[anio_i]}` : "");
+  const rampa = hay && e
+    ? `<div class="pramp" style="background:linear-gradient(to right,${e.tonos.join(",")})">
+         <i style="left:${(posEnRampa(e, v) * 100).toFixed(1)}%"></i></div>`
+    : "";
+  return `<div class="pn">${nom}</div><div class="pd">${sub}</div>
+    <div class="pind">${kicker}</div>
+    <div class="pv"><span class="pchip" style="background:${tonoDe(e, v)}"></span>
+      <b>${hay ? fmt(v, i.unit) : "s/d"}</b></div>
+    ${rampa}${filas}${nota ? `<div class="pnota">${nota}</div>` : ""}`;
+}
+/* Sigue al cursor y se planta del otro lado cuando no entra: contra el borde
+   derecho o el inferior, un tooltip anclado siempre abajo-a-la-derecha se sale
+   de la pantalla justo en los municipios del borde, que son la mitad. */
+function mostrarPop(html, x, y){
+  if (!popEl) return;
+  popEl.innerHTML = html;
+  popEl.style.opacity = "1";
+  const r = popEl.getBoundingClientRect();
+  let L = x + 16, T = y + 16;
+  if (L + r.width > innerWidth - 10) L = x - 16 - r.width;
+  if (T + r.height > innerHeight - 10) T = y - 16 - r.height;
+  popEl.style.left = Math.max(10, L) + "px";
+  popEl.style.top = Math.max(10, T) + "px";
+}
+function ocultarPop(){ if (popEl) popEl.style.opacity = "0"; }
+
+/* ── INTERACCIÓN ─────────────────────────────────────────────────────────── */
+function interacciones(){
+  map.on("click", "mun-fill", ev => { if (nivel === "municipio") seleccionar(ev.features[0].properties.sigep); });
+  const mostrar = (ev, esMz) => {
+    const html = tooltipHTML(ev.features[0].properties, esMz);
+    if (!html) return ocultarPop();
+    mostrarPop(html, ev.originalEvent.clientX, ev.originalEvent.clientY);
+  };
+  map.on("mousemove", "mun-fill", ev => { if (nivel === "municipio") mostrar(ev, false); });
+  map.on("mousemove", "mz-fill", ev => { if (nivel === "manzana") mostrar(ev, true); });
+  map.on("mouseleave", "mun-fill", ocultarPop);
+  map.on("mouseleave", "mz-fill", ocultarPop);
+  // Arrastrar el mapa con el tooltip pegado al cursor lo deja flotando sobre un
+  // polígono que ya no es el de abajo.
+  map.on("dragstart", ocultarPop);
+  map.on("zoomstart", ocultarPop);
+  // Los municipios se pueden clicar; las manzanas no, y el cursor lo dice.
+  map.on("mouseenter", "mun-fill", () => { if (nivel === "municipio") map.getCanvas().style.cursor = "pointer"; });
+  map.on("mouseleave", "mun-fill", () => { map.getCanvas().style.cursor = ""; });
+  map.getCanvas().style.cursor = "";
+}
+</script>
+</body>
+</html>
