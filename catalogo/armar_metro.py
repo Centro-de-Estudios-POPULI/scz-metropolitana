@@ -41,10 +41,24 @@ _cat.update({k: "hab" for k in (
     "inmigrantes_vida", "emigrantes_internos_vida", "saldo_migratorio_vida",
     "entran_a_trabajar", "salen_a_trabajar", "poblacion_flotante",
     "trabajan_en_su_municipio")})
+# ⚠️ Los que el default "%" clasificaba MAL (2026-08-15). El resto de lo que el
+#    catálogo no declara sí son porcentajes, así que el default les sirve; éstos
+#    no: `hogares` es un conteo y salía informado como "+17.514,1 pp".
+_cat.update({"hogares": "viv", "tam_hogar_pers": "pers/hogar",
+             "paridez_media_12mas": "hijos",
+             "brecha_anios_estudio_hom": "años", "brecha_anios_estudio_muj": "años"})
+
+_sin_unidad = set()
 
 
 def unidad_de(k):
     """(unidad_del_cambio, es_conteo) para un indicador."""
+    # ⚠️ EL DEFAULT NO PUEDE SER SILENCIOSO: suponer "%" para lo que el catálogo
+    #    no declara es lo que hizo que un conteo se informara en pp dos veces
+    #    (población primero, hogares después). Sigue siendo "%" porque es lo que
+    #    acierta en la gran mayoría, pero ahora se avisa al cerrar el armado.
+    if k not in _cat:
+        _sin_unidad.add(k)
     u = _cat.get(k, "%")
     if u in UNI_CONTEO:
         return "%", True
@@ -171,3 +185,7 @@ med = (pct.groupby("indicador")
 print(f"{'indicador':<32}{'2012':>10}{'2024':>10}{'cambio':>12}")
 for k, r in pd.concat([med.head(8), med.tail(8)]).iterrows():
     print(f"{k:<32}{r.v12:>9.1f}{r.v24:>10.1f}{r.cambio_medio:>+11.1f} pp")
+
+if _sin_unidad:
+    print(f"\n⚠ {len(_sin_unidad)} indicadores sin unidad declarada en el catálogo "
+          f"(se les supuso '%'): {', '.join(sorted(_sin_unidad))}")

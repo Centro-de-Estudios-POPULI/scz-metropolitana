@@ -495,12 +495,24 @@ def calcular(d, anio):
         nm = m[mask[m.index]].groupby("cod_ine").size().reindex(dm.index, fill_value=0)
         nh = h[mask[h.index]].groupby("cod_ine").size().reindex(dh.index, fill_value=0)
         out[nombre] = (100 * nm / dm - 100 * nh / dh).reindex(tot.index)
+        # ★ UNA BRECHA NO SE PROMEDIA, ni siquiera ponderando: es la RESTA de dos
+        #   porcentajes, y el agregado hay que rearmarlo desde los componentes
+        #   (calcular el % de mujeres y el de hombres del departamento y recién
+        #   ahí restar). Por eso viajan los cuatro números que hacen falta.
+        out[nombre + "_muj"] = (100 * nm / dm).reindex(tot.index)
+        out[nombre + "_hom"] = (100 * nh / dh).reindex(tot.index)
+        out["_den_" + nombre + "_muj"] = dm.reindex(tot.index)
+        out["_den_" + nombre + "_hom"] = dh.reindex(tot.index)
     brecha(d.lee, res & (d.edad >= 15) & d.lee_resp, "brecha_alfabetismo")
     brecha(d.nivel == "superior", edu, "brecha_edu_superior")
     e19b = res & (d.edad >= 19) & d.anios_estudio.notna()
-    out["brecha_anios_estudio"] = (
-        d[e19b & d.mujer].groupby("cod_ine").anios_estudio.mean()
-        - d[e19b & ~d.mujer].groupby("cod_ine").anios_estudio.mean()).reindex(tot.index)
+    _am = d[e19b & d.mujer].groupby("cod_ine").anios_estudio.mean()
+    _ah = d[e19b & ~d.mujer].groupby("cod_ine").anios_estudio.mean()
+    out["brecha_anios_estudio"] = (_am - _ah).reindex(tot.index)
+    out["brecha_anios_estudio_muj"] = _am.reindex(tot.index)
+    out["brecha_anios_estudio_hom"] = _ah.reindex(tot.index)
+    out["_den_brecha_anios_estudio_muj"] = d[e19b & d.mujer].groupby("cod_ine").size().reindex(tot.index)
+    out["_den_brecha_anios_estudio_hom"] = d[e19b & ~d.mujer].groupby("cod_ine").size().reindex(tot.index)
     # ── empleo ──
     ocu = d.ocupado & (d.edad >= 14) & res
     for n in ("asalariado", "cuenta_propia", "empleador", "familiar",
@@ -516,8 +528,14 @@ def calcular(d, anio):
     n_pet = d[pet].groupby("cod_ine").size().reindex(tot.index, fill_value=0)
     n_pea = d[pet & activo].groupby("cod_ine").size().reindex(tot.index, fill_value=0)
     n_ocu = d[pet & d.ocupado].groupby("cod_ine").size().reindex(tot.index, fill_value=0)
+    # ★ el universo de las tasas de empleo es la PET 15+, no la población:
+    #   sin este denominador el Atlas las agregaba ponderando por población y
+    #   los municipios jóvenes pesaban de más
     out["tasa_participacion"] = 100 * n_pea / n_pet.replace(0, np.nan)
     out["tasa_ocupacion"] = 100 * n_ocu / n_pet.replace(0, np.nan)
+    out["_den_tasa_participacion"] = n_pet
+    out["_den_tasa_ocupacion"] = n_pet
+    out["_den_tasa_desocupacion"] = n_pea
     out["tasa_desocupacion"] = 100 * (n_pea - n_ocu) / n_pea.replace(0, np.nan)
     # ── cortes femeninos: los pide el Atlas Socioeconómico y son el mismo
     #    cálculo restringido a mujeres, con la MISMA base 15+ (no la del INE,
@@ -528,14 +546,20 @@ def calcular(d, anio):
     n_ocu_f = d[pet_f & d.ocupado].groupby("cod_ine").size().reindex(tot.index, fill_value=0)
     out["tasa_participacion_fem"] = 100 * n_pea_f / n_pet_f.replace(0, np.nan)
     out["tasa_ocupacion_fem"] = 100 * n_ocu_f / n_pet_f.replace(0, np.nan)
+    out["_den_tasa_participacion_fem"] = n_pet_f
+    out["_den_tasa_ocupacion_fem"] = n_pet_f
     for s, cods in [("primario", [1, 2]), ("secundario", [3, 4, 5, 6]),
                     ("servicios", list(range(7, 22)))]:
         pct(d.rama.isin(cods), ocu, "pct_sector_" + s)
     nh = d[pet & ~d.mujer].groupby("cod_ine").size()
     nm = d[pet & d.mujer].groupby("cod_ine").size()
-    out["brecha_participacion"] = (
-        100 * d[pet & activo & ~d.mujer].groupby("cod_ine").size() / nh
-        - 100 * d[pet & activo & d.mujer].groupby("cod_ine").size() / nm).reindex(tot.index)
+    _bh = 100 * d[pet & activo & ~d.mujer].groupby("cod_ine").size() / nh
+    _bm = 100 * d[pet & activo & d.mujer].groupby("cod_ine").size() / nm
+    out["brecha_participacion"] = (_bh - _bm).reindex(tot.index)
+    out["brecha_participacion_hom"] = _bh.reindex(tot.index)
+    out["brecha_participacion_muj"] = _bm.reindex(tot.index)
+    out["_den_brecha_participacion_hom"] = nh.reindex(tot.index)
+    out["_den_brecha_participacion_muj"] = nm.reindex(tot.index)
     pct(d.ocu1d.isin([1, 2, 3]), ocu, "pct_ocu_profesionales")
     pct(d.ocu1d == 9, ocu, "pct_ocu_no_calificado")
     for n, cods in [("agricultura", [1]), ("manufactura", [3]), ("construccion", [6]),
@@ -557,10 +581,21 @@ def calcular(d, anio):
     pct(d.nac_exterior, res, "pct_nacido_extranjero")
     pct(d.res5_otro, res & (d.edad >= 5), "pct_migrante_reciente")
     # ── fecundidad ──
+    # ★ PARIDEZ MEDIA = LA DEFINICIÓN DEL INE (adoptada 2026-08-14).
+    #   Verificado aritméticamente contra `salud/6`: su paridez es
+    #   `hijos nacidos vivos / (total de mujeres − sin información)` y su
+    #   universo son las MUJERES EN EDAD FÉRTIL (15-49) — 87.540 en Sucre,
+    #   contra 116.900 si fueran todas las de 15+. Eso es exactamente lo que
+    #   este motor venía llamando `fecundidad`.
+    #   El nombre ya tiene dueño público: publicar otra cosa bajo él es el error,
+    #   por correcto que sea nuestro cálculo.
     mef = res & d.mujer & d.edad.between(15, 49) & d.hijos_nac.notna()
-    out["fecundidad"] = d[mef].groupby("cod_ine").hijos_nac.mean()
+    out["paridez_media"] = d[mef].groupby("cod_ine").hijos_nac.mean()
+    out["_den_paridez_media"] = d[mef].groupby("cod_ine").size()
+    # la versión sobre mujeres de 12+ se conserva con nombre propio: es un
+    # indicador legítimo, pero NO es el que el INE publica como paridez media
     m12 = res & d.mujer & (d.edad >= 12) & d.hijos_nac.notna()
-    out["paridez_media"] = d[m12].groupby("cod_ine").hijos_nac.mean()
+    out["paridez_media_12mas"] = d[m12].groupby("cod_ine").hijos_nac.mean()
     # ⚠️ El cociente exige que estén LAS DOS variables en la misma mujer.
     #    565.290 mujeres en 2012 (1.021.545 en 2024) declaran hijos nacidos y
     #    tienen el campo de sobrevivientes en "no aplica" —código grande que el
@@ -571,6 +606,7 @@ def calcular(d, anio):
     hn = d[amb].groupby("cod_ine").hijos_nac.sum()
     hv = d[amb].groupby("cod_ine").hijos_viv.sum()
     out["pct_hijos_fallecidos"] = 100 * (1 - hv / hn)
+    out["_den_pct_hijos_fallecidos"] = hn          # el universo son los HIJOS
     # ── parto calificado ──
     # ★ El universo NO son todas las madres de 15-49: es quien tuvo un parto en
     #   los últimos cinco años, que es a quien se le hace la pregunta. Con el
@@ -719,6 +755,9 @@ def calcular(d, anio):
     cap_dep = aqui.str[:2] + "0101"
     cap = d[trabaja & (d.mun_trabaja == cap_dep) & (d.mun_trabaja != aqui)]             .groupby("cod_ine").size().reindex(tot.index, fill_value=0)
     out["dependencia_capital"] = 100 * cap / n_tr.replace(0, np.nan)
+    # los tres flujos se calculan sobre quienes DECLARARON dónde trabajan
+    for _f in ("autocontencion_laboral", "pct_trabaja_fuera", "dependencia_capital"):
+        out["_den_" + _f] = n_tr
     return pd.DataFrame(out)
 
 

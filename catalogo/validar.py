@@ -166,6 +166,16 @@ CASOS = [
  ("pct_televisor", "tic", "1", [("televisor", "tiene")], [("televisor", "tiene")]),
  ("pct_carreta",   "equipamiento_hogar", "1", [("carreta o carreton", "tiene")],
                                               [("carreta o carreton", "tiene")]),
+
+ # ── 2026-08-15: los dos indicadores de HOGAR del bloque emigración/mortalidad ──
+ # Salen de este motor (su denominador son las viviendas ocupadas), pero no
+ # tenían caso cableado, así que quedaban sin contrastar igual que el resto del
+ # bloque. El de emigrantes por país y la tasa de mortalidad —cuyo denominador es
+ # otro— se validan aparte, en `validar_otros.py`.
+ ("pct_con_emigrante",   "emigracion_internacional", "1", ["con emigrantes"],
+                                                          ["con emigrantes"]),
+ ("pct_hogar_fallecido", "mortalidad", "1", ["con personas fallecidas declaradas"],
+                                            ["con personas fallecidas declaradas"]),
 ]
 
 def leer(arch, hoja, cats, anio):

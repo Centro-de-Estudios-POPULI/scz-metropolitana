@@ -21,10 +21,36 @@ sys.path.insert(0, r"C:\Users\HP\OneDrive\Desktop\Proyectos\investigaciones\upre
 # ISO 3166-1 numérico, que es lo que usa el censo en `pais_destino_cod`
 PAISES = {"argentina": 32, "brasil": 76, "chile": 152, "espana": 724, "eeuu": 840}
 
+# ★★★ EL UNIVERSO ES EL PERÍODO INTERCENSAL (resuelto el 2026-08-15).
+#
+# El cuestionario (Capítulo D, pregunta 20) pregunta por "alguna persona que
+# vivía con usted(es) en este hogar" que "actualmente vive en otro país": es un
+# STOCK sin corte temporal en la pregunta. Pero el INE PUBLICA sólo a quienes
+# salieron desde el censo anterior, y lo hace en los dos censos:
+#
+#     2024 → salieron 2012..2024 = 329.047  = la cifra del INE, exacta
+#     2012 → salieron 2001..2012 = 437.160  = la cifra del INE, exacta
+#
+# ⚠️ POR QUÉ SE HABÍA DESCARTADO EL CORTE POR AÑO: la prueba anterior filtró con
+#    `>= 2012` y el "sin especificar" de 2024 se codifica **9999**, que es mayor
+#    que cualquier año ⇒ los 40.614 sin año entraban igual y el total no cerraba
+#    nunca. Hay que acotar por ARRIBA además de por abajo.
+#    En 2012 el "sin especificar" son 52.374 con código **0** y 25 con 9999.
+#
+# ★ Efecto de fondo: con esto la serie 2012↔2024 compara dos FLUJOS del mismo
+#   tipo (emigrados durante el período), no un flujo contra un acumulado.
+VENTANA = {2024: (2012, 2024), 2012: (2001, 2012)}
+
+# El período que el INE publica en el módulo de mortalidad del censo 2024.
+MORTA = (2019, 2023)
+
 
 def _2024():
     e = pd.read_csv(CPV24 / "Emigracion_CPV-2024.csv", sep=";", dtype=str, encoding="latin-1")
     e["cod_ine"] = e.idep.str.zfill(2) + e.iprov.str.zfill(2) + e.imun.str.zfill(2)
+    lo, hi = VENTANA[2024]
+    e["ansal"] = pd.to_numeric(e.e204_ansal, errors="coerce")
+    e = e[e.ansal.between(lo, hi)].copy()
     # ⚠️ Mismo recorte que en 2012 (que sí lo tenía) y por el mismo motivo: los
     #    códigos de "no aplica" / "sin especificar" son números grandes y entran
     #    al promedio. Sin esto la edad media de emigración daba 128,9 años de
@@ -43,6 +69,13 @@ def _2024():
     #    COMPLETO antes del censo: 2023 ⇒ 73.756/11.365.333 = 6,5 por mil, que sí
     #    es del orden correcto.
     m["anio"] = pd.to_numeric(m.m212b_an, errors="coerce")
+    # ★ Y EL ACUMULADO QUE PUBLICA EL INE ES 2019-2023 (validado el 2026-08-15
+    #   contra `mortalidad/2`, que trae una columna por año): 351.815 y no los
+    #   382.731 del archivo. Quedan fuera el **2024 parcial** (17.344: el censo
+    #   se levantó a mitad de año) y los 13.572 **sin año declarado**. Sus cinco
+    #   columnas anuales coinciden con las nuestras al registro, así que la
+    #   diferencia era sólo de universo.
+    m = m[m.anio.between(*MORTA)].copy()
     return e, m
 
 
@@ -77,17 +110,32 @@ if __name__ == "__main__":
     ge, gm = e.groupby("cod_ine"), m.groupby("cod_ine")
     out["emigrantes"] = ge.size()
     out["edad_prom_emigracion"] = ge.edad.mean()
+    # ⚠️ REINDEXAR CON 0 (2026-08-13): si un municipio tiene emigrantes pero
+    #    NINGUNO a ese país, el groupby no devuelve fila y salía NaN en vez de 0
+    #    —"sin dato" donde el dato es cero—. Afectaba a 4 municipios con entre 4
+    #    y 59 emigrantes. Mismo error que había en las brechas de género.
+    # ★ EL DENOMINADOR SON LOS EMIGRANTES, no la población. Confirmado por la
+    #   estructura del tabulado: los destinos de cada municipio SUMAN 100.
+    #   Sin emitirlo, el Atlas agregaba estos porcentajes ponderando por
+    #   población y el destino nacional salía mal.
     for n, c in PAISES.items():
-        out["pct_emi_" + n] = 100 * e[e.pais == c].groupby("cod_ine").size() / ge.size()
+        num = e[e.pais == c].groupby("cod_ine").size().reindex(ge.size().index, fill_value=0)
+        out["pct_emi_" + n] = 100 * num / ge.size()
+        out["_den_pct_emi_" + n] = ge.size()
+    out["_den_edad_prom_emigracion"] = ge.size()
     out["fallecidos"] = gm.size()
     out["edad_prom_fallecimiento"] = gm.edad.mean()
-    out["pct_muertes_covid"] = 100 * m[m.covid].groupby("cod_ine").size() / gm.size()
+    num_c = m[m.covid].groupby("cod_ine").size().reindex(gm.size().index, fill_value=0)
+    out["pct_muertes_covid"] = 100 * num_c / gm.size()
+    # ídem: el universo son los FALLECIDOS
+    out["_den_pct_muertes_covid"] = gm.size()
+    out["_den_edad_prom_fallecimiento"] = gm.size()
     # fallecidos del último año completo: es el numerador de la tasa anual
     AREF = 2023
     out["fallecidos_" + str(AREF)] = m[m.anio == AREF].groupby("cod_ine").size()
     d24 = pd.DataFrame(out)
     d24["emigrantes_x1000"] = 1000 * d24.emigrantes / pob[2024]
-    # ⚠️ `fallecidos` es el ACUMULADO 2019-2024 del módulo, NO un año. La tasa
+    # ⚠️ `fallecidos` es el ACUMULADO 2019-2023 del módulo, NO un año. La tasa
     #    se calcula con el año de referencia; publicar el acumulado como tasa
     #    anual daba 33,4 por mil (ver _2024 arriba).
     d24["tasa_mortalidad"] = 1000 * d24["fallecidos_" + str(AREF)] / pob[2024]
@@ -117,7 +165,12 @@ if __name__ == "__main__":
     im = db.municipio_de("MORTA")
     de = pd.DataFrame({"cod_ine": pd.Categorical.from_codes(ie, cods).astype(str),
                        "edad": pd.Series(db.leer("EMIGRA:P20G")).where(lambda x: x <= 110),
-                       "pais": pd.Series(db.leer("EMIGRA:P20J"))})
+                       "pais": pd.Series(db.leer("EMIGRA:P20J")),
+                       "ansal": pd.Series(db.leer("EMIGRA:P20F"))})
+    # misma ventana intercensal que en 2024 (ver VENTANA arriba): acá el "sin
+    # especificar" son 52.374 con código 0 y 25 con 9999, y quedan fuera solos
+    lo, hi = VENTANA[2012]
+    de = de[de.ansal.between(lo, hi)]
     dm = pd.DataFrame({"cod_ine": pd.Categorical.from_codes(im, cods).astype(str),
                        "edad": pd.Series(db.leer("MORTA:P21E")).where(lambda x: x <= 110)})
     o = {}
@@ -126,7 +179,8 @@ if __name__ == "__main__":
     o["edad_prom_emigracion"] = g1.edad.mean()
     for n, c in codigos12.items():
         if c is not None:
-            o["pct_emi_" + n] = 100 * de[de.pais == c].groupby("cod_ine").size() / g1.size()
+            num = de[de.pais == c].groupby("cod_ine").size().reindex(g1.size().index, fill_value=0)
+            o["pct_emi_" + n] = 100 * num / g1.size()
     o["fallecidos"] = g2.size()
     o["edad_prom_fallecimiento"] = g2.edad.mean()
     d12 = pd.DataFrame(o)
