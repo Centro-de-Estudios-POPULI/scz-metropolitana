@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Santa Cruz · Atlas Metropolitano</title>
+<title>Santa Cruz · Atlas Metropolitano — Municipio y manzana</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <!-- La identidad se extrae del Atlas Socioeconómico, no se transcribe:
      `python scripts/extraer_estilo.py`. Ver la cabecera del archivo. -->
-<link href="estilo-atlas.css" rel="stylesheet">
+<link href="../estilo-atlas.css" rel="stylesheet">
 <style>
 /* ── Sólo lo propio de este tablero. Todo lo demás vive en estilo-atlas.css ── */
 #mapbox{position:fixed;inset:0}
@@ -178,7 +178,7 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
     <polygon points="100,88 111,93 119,104 115,116 106,125 94,126 84,117 81,104 89,93" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="4"/>
   </svg></div>
   <div class="t-tit">
-    <div class="t-h"><b>Santa Cruz:</b> Atlas Metropolitano</div>
+    <div class="t-h"><b>Santa Cruz:</b> Atlas Metropolitano <span class="t-sub">· manzana</span></div>
     <div class="t-name">Observatorio de Finanzas Públicas y Desarrollo Territorial</div>
   </div>
   <div class="top-sp"></div>
@@ -515,12 +515,12 @@ const popEl = document.getElementById("pop");
 
 /* ── CARGA ───────────────────────────────────────────────────────────────── */
 Promise.all([
-  fetch("datos/catalogo_tablero.json").then(r => r.json()),
-  fetch("datos/municipios.json").then(r => r.json()),
-  fetch("datos/fiscal.json").then(r => r.json()),
-  fetch("datos/municipios.geojson").then(r => r.json()),
-  fetch("datos/region.geojson").then(r => r.json()),
-  fetch("datos/mini.json").then(r => r.json()),
+  fetch("../datos/catalogo_manzana.json").then(r => r.json()),
+  fetch("../datos/municipios_manzana.json").then(r => r.json()),
+  fetch("../datos/fiscal.json").then(r => r.json()),
+  fetch("../datos/municipios.geojson").then(r => r.json()),
+  fetch("../datos/region.geojson").then(r => r.json()),
+  fetch("../datos/mini.json").then(r => r.json()),
 ]).then(([cat, mun, fis, gmun, greg, mini]) => {
   CAT = cat; MUN = mun; FIS = fis; MINI = mini;
   anio_i = FIS.anios.length - 1;
@@ -800,8 +800,8 @@ async function cargarManzanas(){
   let hechos = 0;
   const partes = await Promise.all(slugs.map(async (s, k) => {
     const [geo, dat] = await Promise.all([
-      fetch(`datos/geo_${s}.geojson`).then(r => r.json()),
-      fetch(`datos/dat_${s}.json`).then(r => r.json())
+      fetch(`../datos/geo_${s}.geojson`).then(r => r.json()),
+      fetch(`../datos/dat_${s}.json`).then(r => r.json())
     ]);
     mzCargadas[MUN[k].sigep] = dat;
     geo.features.forEach(f => { f.properties.s = MUN[k].sigep; });

@@ -761,13 +761,61 @@ def calcular(d, anio):
     return pd.DataFrame(out)
 
 
+def urbrur_2024(d):
+    """Marca urbana/rural en la persona, traída de SU VIVIENDA.
+
+    ★ POR QUÉ HACE FALTA. El tablero municipio↔manzana sirve TRES cifras por
+      indicador —municipio · municipio URBANO · manzana— y la del medio es la
+      única estrictamente comparable con la manzana, que es un bloque urbano.
+      `motor.py` ya la emitía para vivienda (`municipal_urbano_*`), pero el
+      bloque de PERSONA no la tenía, así que 20 de los 62 comparables no se
+      podían verificar: la diferencia contra el municipio entero mezcla el sesgo
+      urbano con una posible definición distinta y no se pueden separar.
+
+    ⚠️ NO se toca la caché ni `ESPERADAS`: la marca se pega DESPUÉS, por la clave
+       `hogar` (cod_ine + i00) que el motor ya construye y que es la misma llave
+       de la vivienda. Rehacer el parquet cuesta ~20 minutos y acá no hace falta.
+    """
+    v = pd.read_csv(CPV24 / "Vivienda_CPV-2024.csv", sep=";", encoding="latin-1",
+                    usecols=["idep", "iprov", "imun", "i00", "urbrur"], dtype=str)
+    ci = v.idep.str.zfill(2) + v.iprov.str.zfill(2) + v.imun.str.zfill(2)
+    llave = (pd.to_numeric(ci, errors="coerce").astype("int64") * 100_000_000
+             + pd.to_numeric(v.i00, errors="coerce").fillna(0).astype("int64"))
+    # ⚠️ `.to_numpy()` NO es cosmético: `pd.Series(otra_serie, index=...)`
+    #    REINDEXA por el índice viejo en vez de reetiquetar, así que el mapa salía
+    #    todo NaN y quedaban CERO personas urbanas — sin que nada fallara.
+    es_urb = (pd.to_numeric(v.urbrur, errors="coerce") == 1).to_numpy()
+    urb = pd.Series(es_urb, index=llave.to_numpy())
+    urb = urb[~urb.index.duplicated()]
+    m = d.hogar.map(urb).fillna(False).to_numpy()
+    if not m.any():
+        raise SystemExit("urbrur_2024: ninguna persona cruzó con su vivienda — "
+                         "revisar la clave `hogar` antes de seguir")
+    return m
+
+
 if __name__ == "__main__":
-    print("2024 …", flush=True); r24 = calcular(cargar_2024(), 2024)
+    import sys
+    aqui = pathlib.Path(__file__).parent
+    # `--urbano` recalcula SÓLO la mitad urbana de 2024: con las cachés calientes
+    # son minutos, contra la corrida entera de los dos censos.
+    if "--urbano" in sys.argv:
+        d24 = cargar_2024()
+        ru = calcular(d24[urbrur_2024(d24)], 2024)
+        ru.to_csv(aqui / "personas_urbano_2024.csv", encoding="utf-8")
+        print(f"urbano 2024: {int(ru.poblacion.sum()):,} personas · {len(ru)} municipios")
+        print("→ personas_urbano_2024.csv")
+        raise SystemExit(0)
+    print("2024 …", flush=True); d24 = cargar_2024(); r24 = calcular(d24, 2024)
+    print("  urbano 2024 …", flush=True)
+    ru = calcular(d24[urbrur_2024(d24)], 2024)
     print("2012 …", flush=True); r12 = calcular(cargar_2012(), 2012)
     print(f"\n2024: {int(r24.poblacion.sum()):,} personas · {len(r24)} municipios "
           f"· {len([c for c in r24.columns if not c.startswith('_')])} columnas")
+    print(f"      urbano: {int(ru.poblacion.sum()):,} personas · {len(ru)} municipios")
     print(f"2012: {int(r12.poblacion.sum()):,} personas · {len(r12)} municipios")
     aqui = pathlib.Path(__file__).parent
     r24.to_csv(aqui / "personas_2024.csv", encoding="utf-8")
+    ru.to_csv(aqui / "personas_urbano_2024.csv", encoding="utf-8")
     r12.to_csv(aqui / "personas_2012.csv", encoding="utf-8")
-    print("→ personas_2024.csv · personas_2012.csv")
+    print("→ personas_2024.csv · personas_urbano_2024.csv · personas_2012.csv")
