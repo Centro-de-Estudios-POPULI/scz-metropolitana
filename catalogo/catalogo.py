@@ -304,7 +304,11 @@ A(I("pct_hacinamiento", "Hacinamiento (>3 personas por dormitorio)", "%", -1, G,
     e24="tot_pers / v14_dormit > 3", e12="TOTPERS_VIV / P15 > 3", val="vivienda_hogar/14",
     nota="⚠️ Verificar el umbral exacto del INE antes de publicar: el nuestro no reproduce el tabulado."))
 A(I("pers_x_dormitorio", "Personas por dormitorio", "pers", -1, G,
-    e24="media(tot_pers / v14_dormit)", e12="idem", val="vivienda_hogar/15"))
+    e24="suma(tot_pers) / suma(v14_dormit)", e12="suma(TOTPERS_VIV) / suma(P15)",
+    val="vivienda_hogar/15",
+    nota="Razón de dos totales, no promedio de razones. Las viviendas con CERO "
+         "dormitorios aportan sus personas al numerador y nada al denominador: "
+         "así reproduce el tabulado del INE en los 343."))
 A(I("pct_choza", "Chozas o pahuichis", "%", -1, G, y12="ajuste",
     e24="v01_tipoviv == 2", e12="—", uni="viv_part", val="vivienda_hogar/7",
     nota="⚠️ 2012 junta 'Casa/Choza/Pahuichi' en una sola categoría: NO separable."))
@@ -315,7 +319,14 @@ A(I("pct_vivienda_desocupada", "Viviendas desocupadas", "%", 0, G, n="mun+mz", u
 A(I("viviendas", "Viviendas", "viv", 0, G, n="mun+mz", uni="viv_ocu",
     e24="count", e12="count", val="vivienda_hogar/1"))
 A(I("pers_x_vivienda", "Personas por vivienda", "pers", -1, G, n="mun+mz", uni="hogares",
-    e24="media(tot_pers)", e12="media(TOTPERS_VIV)"))
+    e24="media(tot_pers)", e12="media(TOTPERS_VIV)",
+    nota="⚠️ DUPLICADO EXACTO de `tam_hogar`: misma regla y mismo número. "
+         "Decisión de producto pendiente: cuál de los dos se queda."))
+A(I("pers_x_habitacion", "Personas por habitación", "pers", -1, G, uni="hogares",
+    e24="suma(tot_pers) / suma(v13_habitac)", e12="suma(TOTPERS_VIV) / suma(P14)",
+    val="vivienda_hogar/15",
+    nota="El tercer promedio que publica el INE. Habitaciones = cuartos sin contar "
+         "baño ni cocina (preg. 13); los dormitorios son un subconjunto (preg. 14)."))
 
 G = "Tenencia"
 A(I("pct_viv_propia", "Vivienda propia", "%", 1, G, n="mun+mz",

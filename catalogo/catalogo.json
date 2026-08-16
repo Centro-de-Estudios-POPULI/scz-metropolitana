@@ -1452,10 +1452,10 @@
    "s": false,
    "y12": "si",
    "uni": "viv_ocu",
-   "e24": "media(tot_pers / v14_dormit)",
-   "e12": "idem",
+   "e24": "suma(tot_pers) / suma(v14_dormit)",
+   "e12": "suma(TOTPERS_VIV) / suma(P15)",
    "val": "vivienda_hogar/15",
-   "nota": null,
+   "nota": "Razón de dos totales, no promedio de razones. Las viviendas con CERO dormitorios aportan sus personas al numerador y nada al denominador: así reproduce el tabulado del INE en los 343.",
    "fuente": "microdato"
   },
   {
@@ -1535,7 +1535,23 @@
    "e24": "media(tot_pers)",
    "e12": "media(TOTPERS_VIV)",
    "val": null,
-   "nota": null,
+   "nota": "⚠️ DUPLICADO EXACTO de `tam_hogar`: misma regla y mismo número. Decisión de producto pendiente: cuál de los dos se queda.",
+   "fuente": "microdato"
+  },
+  {
+   "k": "pers_x_habitacion",
+   "l": "Personas por habitación",
+   "u": "pers",
+   "d": -1,
+   "g": "Vivienda y materiales",
+   "n": "mun",
+   "s": false,
+   "y12": "si",
+   "uni": "hogares",
+   "e24": "suma(tot_pers) / suma(v13_habitac)",
+   "e12": "suma(TOTPERS_VIV) / suma(P14)",
+   "val": "vivienda_hogar/15",
+   "nota": "El tercer promedio que publica el INE. Habitaciones = cuartos sin contar baño ni cocina (preg. 13); los dormitorios son un subconjunto (preg. 14).",
    "fuente": "microdato"
   },
   {
@@ -1802,12 +1818,12 @@
    "g": "Educación",
    "n": "mun",
    "s": true,
-   "y12": "no",
+   "y12": "si",
    "uni": "p6_17",
-   "e24": "p39_tipoest == público",
-   "e12": null,
+   "e24": "p39_tipoest == pública",
+   "e12": "P36 == 1",
    "val": null,
-   "nota": "⚠️ Sólo 2024: la pregunta no existe en el censo de 2012.",
+   "nota": "Corregido 2026-08-12: yo había anotado que era sólo de 2024 y ESTÁ MAL. En 2012 la pregunta de asistencia (P36) responde pública / privada / de convenio, así que el tipo de establecimiento sí tiene serie intercensal.",
    "fuente": "microdato"
   },
   {
@@ -2284,10 +2300,10 @@
    "s": true,
    "y12": "si",
    "uni": "ocupados",
-   "e24": "act_eco_2d_19 == agricultura",
+   "e24": "act_eco_2d_13 == agricultura",
    "e12": "P44 agricultura",
    "val": "economia/9",
-   "nota": null,
+   "nota": "★ TODO el bloque de empleo va con la 13ª CIET, no la 19ª. El tabulado del INE usa la 13 (es la que permite comparar con 2012) y la 19 saca de la ocupación a los productores agrícolas de autoconsumo: con `act_eco_2d_19` faltaban 444.396 agricultores y el indicador no cerraba.",
    "fuente": "microdato"
   },
   {
@@ -2396,10 +2412,10 @@
    "s": true,
    "y12": "si",
    "uni": "ocupados",
-   "e24": "ocu_1d_19 in {1,2,3}",
+   "e24": "ocu_1d_13 in {1,2,3}",
    "e12": "P42 in {1,2,3}",
    "val": "economia/6",
-   "nota": "Indicador nuevo: usa el grupo ocupacional, que hoy no se explota.",
+   "nota": "Indicador nuevo: usa el grupo ocupacional, que hoy no se explota. ★ USAR LA 13ª CIET, no la 19ª — ver la nota de rama.",
    "fuente": "microdato"
   },
   {
@@ -2412,7 +2428,7 @@
    "s": true,
    "y12": "si",
    "uni": "ocupados",
-   "e24": "ocu_1d_19 == 9",
+   "e24": "ocu_1d_13 == 9",
    "e12": "P42 == 9",
    "val": "economia/6",
    "nota": null,

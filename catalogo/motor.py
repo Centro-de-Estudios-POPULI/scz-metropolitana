@@ -375,11 +375,32 @@ REGLAS = {
  "pct_aire_acond":  R(lambda d: d.aire == "si"),
  "pct_lavadora":    R(lambda d: d.lavadora == "si"),
 }
-# indicadores que no son una proporción de viviendas
-PROMEDIOS = {
- "tam_hogar":        lambda d: d.tot_pers,
- "pers_x_vivienda":  lambda d: d.tot_pers,
- "pers_x_dormitorio":lambda d: d.tot_pers / d.dormit.replace(0, np.nan),
+# indicadores que no son una proporción de viviendas: son RAZONES DE DOS TOTALES.
+#
+# ★★ NO SON PROMEDIOS DE RAZONES (corregido y VALIDADO el 2026-08-15, 343/343).
+#    El INE publica los tres en `vivienda_hogar/15` y su cuenta es
+#    **suma(personas) / suma(dormitorios)**, con las personas de TODAS las
+#    viviendas del universo en el numerador —incluidas las que declaran CERO
+#    dormitorios, que aportan gente pero no dormitorios (139.293 viviendas)—.
+#    Se probaron cuatro definiciones contra el tabulado antes de tocar nada:
+#      · media de razones por vivienda   3/343  (+0,195: una casa de 1 persona en
+#        1 dormitorio pesa igual que una de 8 en 2, así que infla)
+#      · totales excluyendo las de 0 dor 0/343  (−0,078)
+#      · las de 0 dor contadas como 1    1/343  (−0,062)
+#      · **totales, 0 dor sin denominador  343/343  (exacto)**
+#    `tam_hogar` ya cerraba 343/343 porque su denominador es el CONTEO de
+#    viviendas, y ahí promediar y dividir totales son la misma cuenta.
+#
+# ⚠️ `pers_x_vivienda` es UN DUPLICADO EXACTO de `tam_hogar` —los dos declaran
+#    `media(tot_pers)`— y el Atlas publica los dos con el mismo número bajo dos
+#    nombres. Queda una decisión de producto: cuál de los dos se queda.
+#
+#   clave                numerador             denominador (None = contar viviendas)
+RAZONES_VIV = {
+ "tam_hogar":        (lambda d: d.tot_pers,  None),
+ "pers_x_vivienda":  (lambda d: d.tot_pers,  None),
+ "pers_x_dormitorio":(lambda d: d.tot_pers,  lambda d: d.dormit),
+ "pers_x_habitacion":(lambda d: d.tot_pers,  lambda d: d.habitac),
 }
 
 
@@ -430,8 +451,18 @@ def calcular(d, anio=None):
     out["pct_vivienda_desocupada"] = (
         100 * d.loc[m_desoc].groupby("cod_ine").size()
         / d.loc[m_part].groupby("cod_ine").size()).reindex(tot.index)
-    for k, f in PROMEDIOS.items():
-        out[k] = f(u).groupby(u.cod_ine).mean()
+    for k, (f_num, f_den) in RAZONES_VIV.items():
+        num = f_num(u)
+        if f_den is None:                      # denominador = cantidad de viviendas
+            out[k] = num.groupby(u.cod_ine).mean()
+            out["_den_" + k] = tot
+            continue
+        # ⚠️ SIN filtrar por denominador > 0: las viviendas que declaran cero
+        #    dormitorios entran al numerador con su gente y no suman dormitorios.
+        #    Excluirlas da 0/343 contra el tabulado; incluirlas, 343/343.
+        den = f_den(u).groupby(u.cod_ine).sum().reindex(tot.index)
+        out[k] = num.groupby(u.cod_ine).sum().reindex(tot.index) / den
+        out["_den_" + k] = den
     return pd.DataFrame(out)
 
 

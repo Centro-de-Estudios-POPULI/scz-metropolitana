@@ -51,6 +51,19 @@ CASOS = [
 ]
 
 
+# ── PROMEDIOS: el INE publica el valor, no un conteo ─────────────────────────
+# No son porcentajes ni conteos, así que tampoco entraban en ningún validador.
+# Son los tres de `vivienda_hogar/15`, y salen de `municipal_*.csv`.
+# ⚠️ `pers_x_vivienda` NO está acá porque es un duplicado exacto de `tam_hogar`
+#    (misma regla): validarlo dos veces no agrega nada.
+PROMEDIOS = [
+    ("tam_hogar",         "vivienda_hogar", "15", ("{a}", "promedio de personas por hogar")),
+    ("pers_x_dormitorio", "vivienda_hogar", "15", ("{a}", "promedio de personas por dormitorio")),
+    ("pers_x_habitacion", "vivienda_hogar", "15", ("{a}", "promedio de personas por habitacion")),
+]
+TOL = 0.011          # el INE publica con 2 decimales
+
+
 def col(h, ruta, a):
     """Índice de la columna cuya ruta es EXACTAMENTE la pedida."""
     return h.cols.get(tuple(norm(p.format(a=a)) for p in ruta))
@@ -107,6 +120,38 @@ for ind, arch, hoja, r_num, r_den, anios in CASOS:
                 ok += 1
             elif peor is None or abs(n_mic - n_ine) > peor[1]:
                 peor = (k[1], abs(n_mic - n_ine), n_mic, n_ine)
+        resumen[a][0] += ok; resumen[a][1] += tot
+        fila += f"{('✓' if ok == tot else '✗') + f' {ok}/{tot}':>18}"
+        if peor:
+            detalle.append((ind, a, peor))
+    print(fila)
+
+mun = {a: pd.read_csv(AQUI / f"municipal_{a}.csv", index_col=0, dtype={0: str})
+       for a in (2024, 2012)}
+for a in mun:
+    mun[a].index = mun[a].index.astype(str).str.zfill(6)
+
+for ind, arch, hoja, ruta in PROMEDIOS:
+    fila = f"{ind:<22}"
+    for a in (2024, 2012):
+        h = lector.abrir(arch, hoja)
+        j = col(h, ruta, a)
+        if j is None or ind not in mun[a].columns:
+            fila += f"{'sin columna':>18}"; continue
+        ok = tot = 0; peor = None
+        for k, f in h.filas.items():
+            ci = clave.get(k)
+            if ci is None or ci not in mun[a].index or f[j] is None:
+                continue
+            v = mun[a].at[ci, ind]
+            if pd.isna(v):
+                continue
+            tot += 1
+            dif = abs(float(f[j]) - v)
+            if dif <= TOL:
+                ok += 1
+            elif peor is None or dif > peor[1]:
+                peor = (k[1], dif, v, float(f[j]))
         resumen[a][0] += ok; resumen[a][1] += tot
         fila += f"{('✓' if ok == tot else '✗') + f' {ok}/{tot}':>18}"
         if peor:

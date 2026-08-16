@@ -101,10 +101,14 @@ def main():
         porcat.setdefault(i["g"], []).append(
             {"key": k, "label": i["l"], "unit": i["u"], "dir": i.get("d", 0),
              "desc": i.get("nota") or i["l"]})
-    idx = {g["label"]: g for g in grupos}
+    # ⚠️ El emparejamiento de grupos va SIN mayúsculas: el catálogo del motor dice
+    #    "Vivienda y materiales" y el del Atlas "Vivienda y Materiales", y con
+    #    comparación exacta aparecía un grupo NUEVO duplicado, idéntico salvo una
+    #    letra, con un solo indicador adentro.
+    idx = {g["label"].casefold(): g for g in grupos}
     for g, items in sorted(porcat.items()):
-        if g in idx:
-            idx[g]["indicadores"] = idx[g]["indicadores"] + items
+        if g.casefold() in idx:
+            idx[g.casefold()]["indicadores"] = idx[g.casefold()]["indicadores"] + items
         else:
             grupos.append({"key": g.lower().replace(" ", "_"), "label": g,
                            "indicadores": items})
