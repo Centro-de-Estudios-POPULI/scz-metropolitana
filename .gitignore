@@ -18,9 +18,12 @@ fuente/
 # empaquetar_web.py, no es producto
 datos/manzanas_*.geojson
 
-# empaquetado para la web: lo produce empaquetar_web.py / preparar_web.py
-web/datos/geo_*.geojson
-web/datos/dat_*.json
+# ⚠️ El empaquetado para la web SÍ VA AL REPO desde el 2026-08-16: es lo que
+#    sirve GitHub Pages. Son 22 MB (geometría de 38.892 manzanas + sus datos) y
+#    aunque se regeneran con `reempaquetar_manzana.py`, sin ellos el tablero
+#    municipio↔manzana da 404 en el nivel de abajo.
+#    Lo que sigue afuera es el INSUMO, no el producto: `datos/manzanas_*.geojson`
+#    (78,9 MB) y `catalogo/manzana_2024.csv` (91 MB).
 
 __pycache__/
 *.pyc
