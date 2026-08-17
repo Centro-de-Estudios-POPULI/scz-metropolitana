@@ -194,7 +194,8 @@ pct_viv_anticretico,0.0,0.0,100.0
 pct_viv_prestada,0.0,0.0,100.0
 pct_vivienda_desocupada,0.0,0.0,100.0
 pct_vivienda_propia,0.0,0.0,100.0
-pers_x_dormitorio,-0.19700000000000006,0.5449999999999999,4.373177842565598
+pers_x_dormitorio,0.0,0.0,100.0
+pers_x_habitacion,0.0,0.0,100.0
 pers_x_vivienda,0.0,0.0,100.0
 pob_hombres,0.0,0.0,100.0
 pob_mujeres,0.0,0.0,100.0

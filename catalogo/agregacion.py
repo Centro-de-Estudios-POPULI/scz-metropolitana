@@ -90,9 +90,8 @@ def cargar(anio):
     return partes
 
 
-def main():
-    partes = cargar(2024)
-    # ── denominador de cada indicador, en vocabulario del catálogo ──
+def construir(partes):
+    """Denominador de cada indicador (vocabulario del catálogo) y sus series."""
     den_de, series = {}, {}
     for f, d in partes.items():
         base = POR_BLOQUE.get(f)
@@ -139,6 +138,53 @@ def main():
     faltan = {v for v in den_de.values()} - set(dens)
     if faltan:
         print(f"  ⚠️ denominadores declarados sin serie: {sorted(faltan)}")
+    return den_de, dens
+
+
+def alinear(partes, orden):
+    """
+    ★ EL MISMO `orden` PARA LOS DOS CENSOS, o el frontend lee otro universo.
+
+    `denominadores.json` viaja como una LISTA por municipio y el frontend
+    indexa por posición (`DEN_ORDEN.indexOf(ind.den)`). Si se dejara que 2012
+    armara su propio `orden`, la deduplicación por firma agruparía distinto
+    —dos denominadores que en 2024 son idénticos pueden no serlo en 2012— y la
+    posición `j` apuntaría a OTRO universo, en silencio. Por eso acá no se
+    recalcula nada: se recibe el orden de 2024 y se rellena slot por slot.
+    """
+    d = {f: p for f, p in partes.items()}
+    per = renombrar(d["personas"]) if "personas" in d else None
+    mun = renombrar(d["municipal"]).rename(columns={"n_viviendas": "viviendas"}) if "municipal" in d else None
+    out, vacios = {}, []
+    for nombre in orden:
+        s = None
+        if nombre == "viviendas" and mun is not None:
+            s = mun["viviendas"]
+        elif nombre == "poblacion_nbi" and "nbi" in d:
+            s = d["nbi"].get("poblacion_nbi")
+        elif nombre == "poblacion" and per is not None:
+            s = per["pob_total"] if "pob_total" in per else per.get("poblacion")
+        elif nombre.startswith("den_"):
+            k = nombre[4:]
+            for p in d.values():                      # el nombre lleva la clave del catálogo:
+                for c in p.columns:                   # hay que volver al nombre del motor
+                    if not c.startswith("_den_"):
+                        continue
+                    if ALIAS.get(c[5:], c[5:]) == k:
+                        s = p[c]
+                        break
+                if s is not None:
+                    break
+        if s is None:
+            vacios.append(nombre)
+        out[nombre] = s
+    return out, vacios
+
+
+def main():
+    partes = cargar(2024)
+    den_de, dens = construir(partes)
+    m = renombrar(partes["municipal"]).rename(columns={"n_viviendas": "viviendas"})
 
     print(f"denominadores distintos: {len(dens)}")
     print(f"indicadores con denominador asignado: {len(den_de)}")
@@ -179,14 +225,37 @@ def main():
               f"(se agregan ponderando, verificar): {', '.join(sorted(dudosos))}")
 
     idx = sorted(dens)
-    payload = {ci: [None if pd.isna(dens[c].get(ci)) else int(dens[c].get(ci, 0))
-                    for c in idx] for ci in m.index}
-    (REPO.parent / "denominadores.json").write_text(
-        json.dumps({"orden": idx, "municipios": payload}, ensure_ascii=False),
-        encoding="utf-8")
+
+    def volcar(series, index, salida):
+        pay = {ci: [None if (series.get(c) is None or pd.isna(series[c].get(ci)))
+                    else int(series[c].get(ci, 0)) for c in idx] for ci in index}
+        (REPO.parent / salida).write_text(
+            json.dumps({"orden": idx, "municipios": pay}, ensure_ascii=False),
+            encoding="utf-8")
+        return pay
+
+    volcar(dens, m.index, "denominadores.json")
+
+    # ── EL MISMO UNIVERSO, PERO DE 2012 ──────────────────────────────────────
+    # Sin esto la serie intercensal se vería bien a nivel municipio y mal en
+    # cuanto se subiera a departamento o país: el agregado de 2012 estaría
+    # ponderado por las viviendas y la población de 2024. Es exactamente el bug
+    # que se arregló en agosto, sólo que corrido un censo.
+    p12 = cargar(2012)
+    if p12:
+        d12, vacios = alinear(p12, idx)
+        m12 = renombrar(p12["municipal"]).rename(columns={"n_viviendas": "viviendas"})
+        volcar(d12, m12.index, "denominadores_2012.json")
+        print(f"denominadores 2012: {len(idx) - len(vacios)} de {len(idx)} con serie")
+        if vacios:
+            # informativo, no un error: hay universos que 2012 no tiene (los flujos
+            # origen-destino son sólo 2024). Lo que NO puede pasar es que se caigan
+            # en silencio, porque el frontend degradaría a población.
+            print(f"  sin serie en 2012 (el indicador quedará sin cifra): {', '.join(vacios)}")
+
     (REPO.parent / "catalogo_agg.json").write_text(
         json.dumps(cat, ensure_ascii=False), encoding="utf-8")
-    print("-> denominadores.json · catalogo_agg.json")
+    print("-> denominadores.json · denominadores_2012.json · catalogo_agg.json")
     return dens, den_de, cat
 
 

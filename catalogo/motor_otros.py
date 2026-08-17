@@ -181,8 +181,17 @@ if __name__ == "__main__":
         if c is not None:
             num = de[de.pais == c].groupby("cod_ine").size().reindex(g1.size().index, fill_value=0)
             o["pct_emi_" + n] = 100 * num / g1.size()
+            o["_den_pct_emi_" + n] = g1.size()
+    # ⚠️ LOS DENOMINADORES TAMBIÉN VAN EN 2012 (agregado 2026-08-16). El bloque de
+    #    2024 los emitía y éste no, así que al publicar la serie intercensal estos
+    #    siete indicadores quedaban SIN cifra nacional ni departamental para 2012:
+    #    el frontend no encuentra el universo, descarta el municipio y el agregado
+    #    sale nulo. No es un problema de 2012 —los emigrantes y los fallecidos por
+    #    municipio están— sino de que el universo propio no viajaba.
+    o["_den_edad_prom_emigracion"] = g1.size()
     o["fallecidos"] = g2.size()
     o["edad_prom_fallecimiento"] = g2.edad.mean()
+    o["_den_edad_prom_fallecimiento"] = g2.size()
     d12 = pd.DataFrame(o)
     d12["emigrantes_x1000"] = 1000 * d12.emigrantes / pob[2012]
     # ⛔ 2012 NO PUEDE dar tasa de mortalidad, y va VACÍA a propósito.
