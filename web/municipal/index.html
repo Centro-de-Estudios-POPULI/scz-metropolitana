@@ -20,12 +20,36 @@
 /* Selector de nivel: es el control que define este producto, así que va en la
    barra superior y no escondido en un panel. */
 .niv{display:none;flex:none;border:1px solid rgba(255,255,255,.22);overflow:hidden}
-.niv button{font:600 .66rem/1 var(--f);letter-spacing:.02em;color:rgba(255,255,255,.72);
+/* Conmutador de CENSO: el mismo control visual que el de nivel —son dos ejes del
+   mismo tablero y tienen que verse hermanos— pero con CLASE PROPIA, porque
+   `generar_sitios.py` apaga la regla de arriba por reemplazo de texto para el
+   tablero de un solo nivel, y con una clase compartida se llevaría puesto este.
+   Se comparte el estilo del botón, no la regla de display.
+   (Y por eso este comentario no cita el literal que busca el reemplazo: si lo
+   citara, la derivación lo reescribiría y quedaría diciendo otra cosa.)
+   Si el catálogo no trae serie censal, lo apaga el JS. */
+.seg{display:flex;flex:none;border:1px solid rgba(255,255,255,.22);overflow:hidden}
+.niv button,.seg button{font:600 .66rem/1 var(--f);letter-spacing:.02em;color:rgba(255,255,255,.72);
   background:transparent;border:0;padding:7px 11px;cursor:pointer;transition:background .18s,color .18s}
-.niv button+button{border-left:1px solid rgba(255,255,255,.22)}
-.niv button:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
-.niv button.on{background:var(--warm);color:#17221a}
-.niv button:disabled{opacity:.38;cursor:not-allowed}
+.niv button+button,.seg button+button{border-left:1px solid rgba(255,255,255,.22)}
+.niv button:hover:not(:disabled),.seg button:hover:not(:disabled){background:rgba(255,255,255,.12);color:#fff}
+.niv button.on,.seg button.on{background:var(--warm);color:#17221a}
+.niv button:disabled,.seg button:disabled{opacity:.38;cursor:not-allowed}
+
+/* Indicador que el censo de 2012 no puede dar: se APAGA y se explica en su propia
+   tarjeta. No se oculta ni se saca del menú — que un indicador exista y no tenga
+   serie es información, y esconderlo haría creer que el menú cambia de tamaño
+   solo, sin decir por qué. */
+.ind.sin12{opacity:.62}
+.ind.sin12 .i-nm{color:var(--suave)}
+.i-tag{display:inline-block;font-size:.54rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--suave);border:1px solid var(--linea);
+  padding:0 5px;margin-bottom:4px}
+.kpi.sin12{opacity:.6}
+/* El motivo dentro de un KPI: es una nota, no una cifra, y va acotado a dos
+   líneas — sin el recorte se salía de la tarjeta y cortaba la palabra a la mitad. */
+.k-w{font-size:.55rem;line-height:1.25;color:var(--suave);display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 /* Aviso de por qué el nivel manzana no está disponible, o de qué cambia al bajar */
 .aviso{position:fixed;z-index:13;left:50%;transform:translateX(-50%);
@@ -182,6 +206,11 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
     <div class="t-name">Observatorio de Finanzas Públicas y Desarrollo Territorial</div>
   </div>
   <div class="top-sp"></div>
+  <div class="seg" id="anio-seg" role="group" aria-label="Censo en pantalla">
+    <button data-a="2024" class="on">2024</button>
+    <button data-a="2012">2012</button>
+    <button data-a="cambio">Cambio</button>
+  </div>
   <div class="niv" id="niv">
     <button data-n="municipio" class="on">Municipio</button>
     <button data-n="manzana">Manzana</button>
@@ -263,6 +292,43 @@ const Z0 = 10.6, Z1 = 12.2;   // banda del cruce
 const fundido = (a, b) => ["interpolate", ["linear"], ["zoom"], Z0, a, Z1, b];
 
 let CAT, MUN, FIS, cat_actual, ind_actual, nivel = "municipio", anio_i = 9;
+/* ── EL CENSO EN PANTALLA ─────────────────────────────────────────────────────
+   Tres estados: el censo de 2024, el de 2012, y el CAMBIO entre los dos.
+
+   ★ Los datos de 2012 ya viajaban dentro de `municipios_municipal.json` —en el
+     bloque `municipal_2012` de cada municipio— y la interfaz no los miraba. Son
+     9 municipios: el archivo entero pesa 96 KB, así que acá NO hace falta la
+     carga diferida que sí necesita el Atlas nacional (343 municipios, 1,6 MB).
+     Ese es todo lo que se simplifica al portar; el resto de la lógica es la misma.
+
+   ★ Y LA PRESENCIA SE MIDE DEL DATO, NO SE DECLARA. El catálogo traía un campo
+     `serie` que decía `true` en 238 de 240 indicadores cuando sólo 176 tienen
+     cifra de 2012: medía que la COLUMNA existiera, y los motores la emiten igual
+     —vacía— cuando 2012 no puede dar el indicador. Con un conmutador en pantalla
+     eso no es un flag inexacto, es prometer un mapa que sale gris entero. Ahora
+     `armar_tableros.py` cuenta los municipios con valor y emite `s12`; lo único
+     declarado es `w12`, la EXPLICACIÓN de la ausencia. */
+let ANIO = "2024";                      // "2024" | "2012" | "cambio"
+
+/* ★ QUÉ ES UN CONTEO LO DECLARA EL CATÁLOGO (`agg:"suma"`), no su unidad. Se
+   necesita en dos lugares: el pivote (el promedio ponderado de un conteo da
+   Σp²/Σp, el tamaño del municipio de la persona promedio: no es legible, así que
+   un conteo se centra en su mediana) y la unidad del cambio. Deducirlo de la
+   unidad es el error que publicó "Personas por hogar: 1.049,2" y
+   "Viviendas: país 62.550" en el Atlas nacional. */
+const esConteo = i => i.agg === "suma";
+/* Un porcentaje cambia en PUNTOS PORCENTUALES y un conteo en PORCENTAJE. */
+const uMode = i => ANIO !== "cambio" ? i.unit
+                 : (esConteo(i) ? "%" : (i.unit === "%" ? "pp" : i.unit));
+/* Sin serie no se puede mirar fuera de 2024: el indicador queda MUDO, y el
+   motivo (`w12`) se escribe en la tarjeta, en la leyenda y en el KPI. */
+const mudo = i => ANIO !== "2024" && !i.s12;
+const haySerie = () => !!(CAT && CAT.grupos.some(g => g.indicadores.some(i => i.s12)));
+function difIntercensal(a, b, ind){
+  if (a === null || a === undefined || b === null || b === undefined
+      || !isFinite(a) || !isFinite(b)) return null;
+  return esConteo(ind) ? (a ? 100 * (b - a) / a : null) : b - a;
+}
 let mzCargadas = {}, mzTodas = null, sel = null;
 // Escala vigente (la que acaba de pintar el mapa). El tooltip la lee para dar el
 // chip de color, la posición en la rampa y el percentil sin recalcular nada.
@@ -296,22 +362,41 @@ function aplicarTema(oscuro, guardar){
 document.getElementById("theme-btn").onclick = () => aplicarTema(!esOscuro(), true);
 
 /* ── ESCALA ──────────────────────────────────────────────────────────────────
-   Idéntica a la de los atlas: dominio [p02, pivote, p98] con el pivote en el
-   PROMEDIO PONDERADO POR POBLACIÓN —una magnitud real, la de la región— y la
-   rampa invertida cuando `dir:+1`, para que el rojo marque siempre el lado
-   malo. El recorte p02/p98 evita que un outlier se coma media paleta. */
+   Idéntica a la de los atlas: dominio [bajo, pivote, alto] con el pivote en el
+   AGREGADO REGIONAL —una magnitud real, la de la región, ponderada por el
+   universo de cada indicador— y la rampa invertida cuando `dir:+1`, para que el
+   rojo marque siempre el lado malo. El recorte p02/p98 evita que un outlier se
+   coma media paleta. */
 function cuantil(ord, q){
   if (!ord.length) return null;
   const h = (ord.length - 1) * q, b = Math.floor(h), r = h - b;
   return ord[b + 1] !== undefined ? ord[b] + r * (ord[b + 1] - ord[b]) : ord[b];
 }
-/* `unidad` decide el pivote: en un CONTEO (habitantes, viviendas) el promedio
-   ponderado por población no significa nada legible —da Σp²/Σp, el tamaño del
-   municipio de la persona promedio— así que ahí se usa la mediana. Es la misma
-   regla que aplica `escala_atlas` en Python; se me había escapado al portarla, y
-   la leyenda mostraba "región 1.171.414" para Población total. */
-function escala(valores, pesos, dir, conSigno, unidad){
-  if (unidad === "hab" || unidad === "viv") pesos = null;
+/* ★ EL PIVOTE DECLARADO. `armar_tableros.py` calcula el agregado de los 9
+   ponderando por EL UNIVERSO DE CADA INDICADOR —un porcentaje de viviendas por
+   viviendas, no por personas— y lo embarca en `CAT.region`. La interfaz lo
+   ignoraba y lo recalculaba acá ponderando todo por población: la mediana de la
+   discrepancia era 0,03, pero `emigrantes_x1000` salía 26,4‰ en vez de 28,5‰
+   (8% de error) y varios porcentajes se corrían medio punto. El número correcto
+   ya viajaba en el archivo; sólo había que leerlo. */
+function pivDeclarado(ind, ambito){
+  if (!CAT || !CAT.region) return null;
+  if (ANIO === "cambio") return 0;
+  let caja = null;
+  if (ambito === "urbano") caja = ANIO === "2024" ? CAT.region.urbano : null;
+  else if (ambito === "municipio")
+    caja = ANIO === "2012" ? CAT.region.municipal_2012 : CAT.region.municipal;
+  const v = caja ? caja[ind.k_mun || ind.k_mz] : null;
+  return v === null || v === undefined || !isFinite(v) ? null : v;
+}
+/* `ambito` dice DE DÓNDE salen los valores, y con eso qué se puede declarar:
+     "municipio" → los 9 del censo: dominio Y pivote declarados
+     "urbano"    → el agregado urbano de los 9: pivote declarado, dominio propio
+     "manzana"   → 25.698 manzanas: nada declarado, el rango es otro por completo
+   Aplicarle el dominio municipal a las manzanas achataría el mapa entero: son
+   bloques, no promedios, y su rango es mucho más ancho. */
+function escala(valores, pesos, ind, ambito){
+  if (esConteo(ind)) pesos = null;
   const v = [], w = [];
   for (let i = 0; i < valores.length; i++){
     const x = valores[i];
@@ -320,23 +405,61 @@ function escala(valores, pesos, dir, conSigno, unidad){
   }
   if (!v.length) return null;
   const ord = v.slice().sort((a,b) => a - b);
-  let lo = cuantil(ord, .02), hi = cuantil(ord, .98), piv, tipo;
+  const decl = ambito === "municipio";
+  let lo, hi, piv, tipo;
+  if (ANIO === "cambio" || ind.div){
+    /* SIMÉTRICO ALREDEDOR DE CERO: si el dominio no lo fuera, un avance de +2 y
+       un retroceso de −2 se pintarían con intensidades distintas y el mapa
+       mentiría sobre la magnitud del cambio. */
+    const m = (decl && ANIO === "cambio" && ind.domd != null) ? ind.domd
+            : (Math.max(Math.abs(cuantil(ord, .02)), Math.abs(cuantil(ord, .98))) || 1);
+    lo = -m; hi = m; piv = 0; tipo = ANIO === "cambio" ? "sin cambio" : "cero";
+    const tonosC = ind.dir === 1 ? DIV.slice().reverse() : DIV;
+    return {lo, piv, hi, pivReal: 0, tipo, tonos: tonosC, ord,
+            min: ord[0], max: ord[ord.length-1],
+            recorte: ord[0] < lo || ord[ord.length-1] > hi, n: v.length};
+  }
+  /* ★ UNA SOLA ESCALA PARA LOS DOS CENSOS: el rango llega DECLARADO en `ind.dom`,
+     calculado sobre la UNIÓN de 2012 y 2024. Así un mismo tono significa un mismo
+     valor en los dos mapas y, al alternar de año, el corrimiento de color ES el
+     avance de la región.
+     MEDIDO antes de adoptarlo, porque acá son 9 municipios y no 343 y no se podía
+     suponer: el mapa de 2024 pasa a usar 0,862 de la rampa en la mediana (de
+     1,000), sólo 2 de 176 indicadores bajan de la mitad y ninguno de un tercio.
+     ⚠️ Los dos que más pierden son `pct_agua_sin_caneria` (0,46) y
+     `pct_trab_familiar` (0,49): ahí el avance intercensal fue tan grande que el
+     mapa de 2024 se concentra en un extremo. Es la lectura honesta.
+     OJO a la asimetría deliberada: el rango DIBUJADO es el de los dos censos
+     juntos, pero el mínimo y el máximo que informa la leyenda son los del censo
+     EN PANTALLA — es lo que el lector está mirando. */
+  if (decl && ind.dom){ lo = ind.dom[0]; hi = ind.dom[1]; }
+  else { lo = cuantil(ord, .02); hi = cuantil(ord, .98); }
   if (hi <= lo){ lo = ord[0]; hi = ord[ord.length-1] || lo + 1; if (hi <= lo) hi = lo + 1; }
-  if (conSigno){
-    const m = Math.max(Math.abs(lo), Math.abs(hi)) || 1;
-    lo = -m; hi = m; piv = 0; tipo = "cero";
-  } else {
+  /* ⚠️ EL PIVOTE DECLARADO NO VALE PARA UN CONTEO. El agregado que emite
+     `armar_tableros.py` es un promedio ponderado, y ponderar un conteo por su
+     propio universo da Σp²/Σp: el tamaño del municipio de la persona promedio.
+     Y la magnitud regional de un conteo —la SUMA— cae por construcción fuera del
+     rango municipal, así que centrar la rampa ahí la degeneraría. Un conteo se
+     centra en su MEDIANA, que sí es una magnitud municipal. Es la misma guarda
+     que le faltaba al Atlas nacional cuando publicó "país 62.550 viviendas". */
+  piv = esConteo(ind) ? null : pivDeclarado(ind, ambito);
+  if (piv === null){
     const sw = w.reduce((a,b) => a + b, 0);
     if (sw > 0){ piv = v.reduce((a,x,i) => a + x * w[i], 0) / sw; tipo = "región"; }
     else { piv = cuantil(ord, .5); tipo = "mediana"; }
-    const pad = (hi - lo) * .08;
-    if (pad > 0) piv = Math.min(Math.max(piv, lo + pad), hi - pad);
-  }
-  const tonos = dir === 1 ? DIV.slice().reverse() : DIV;
+  } else tipo = "región";
+  /* El pivote tiene que caer DENTRO del rango dibujado: pegado a un extremo la
+     rampa se degenera y media paleta no se usa nunca.
+     ⚠️ Cuando eso pasa el número recortado YA NO ES la región ni la mediana, así
+     que se guarda el real (`pivReal`) y la leyenda nombra el recorte en vez de
+     rebautizar un borde con el nombre de una estadística. */
+  const pivReal = piv, pad = (hi - lo) * .08;
+  if (pad > 0) piv = Math.min(Math.max(piv, lo + pad), hi - pad);
+  const tonos = ind.dir === 1 ? DIV.slice().reverse() : DIV;
   // `ord` viaja de vuelta —ya está calculado— porque el tooltip necesita saber a
   // qué percentil corresponde un valor, y reordenar 25.698 manzanas en cada
   // movimiento del mouse sería absurdo.
-  return {lo, piv, hi, tipo, tonos, ord,
+  return {lo, piv, hi, pivReal, tipo, tonos, ord,
           min: ord[0], max: ord[ord.length-1],
           recorte: ord[0] < lo || ord[ord.length-1] > hi, n: v.length};
 }
@@ -390,6 +513,16 @@ function fmt(v, u){
   if (u === "%") return nf(v, 1) + "%";
   if (u === "pp") return (v > 0 ? "+" : "") + nf(v, 1) + " pp";
   return nf(v, 1) + (u ? " " + u : "");
+}
+/* En modo Cambio el signo es parte del dato: un avance y un retroceso del mismo
+   tamaño son cosas distintas, y `fmt` sólo antepone el signo para la unidad "pp".
+   La unidad la decide `uMode` desde lo DECLARADO (un conteo cambia en %, un
+   porcentaje en pp), no desde la unidad del indicador. */
+function fmtM(v, ind){
+  const u = uMode(ind);
+  if (ANIO !== "cambio") return fmt(v, u);
+  if (v === null || v === undefined || !isFinite(v)) return "s/d";
+  return u === "pp" ? fmt(v, "pp") : (v > 0 ? "+" : "") + fmt(v, u);
 }
 
 /* ── MAPA ────────────────────────────────────────────────────────────────────
@@ -515,6 +648,15 @@ const popEl = document.getElementById("pop");
 
 /* ── CARGA ───────────────────────────────────────────────────────────────── */
 Promise.all([
+  /* ⚠️ ESTE ARCHIVO ES LA PLANTILLA de los dos tableros (ver
+     `scripts/generar_sitios.py`), pero también es una página servible: es lo que
+     responde `/scz-metropolitana/web/`. Apuntaba al pipeline VIEJO
+     (`catalogo_tablero.json` + `municipios.json`): 193 indicadores anteriores a
+     toda la validación y con el denominador equivocado, publicados sin que nadie
+     los mirara. Ahora la plantilla lee los MISMOS archivos validados que el
+     tablero municipal, así lo que se sirve por defecto no es una versión vieja.
+     `catalogo_tablero.json` sigue existiendo en disco porque `armar_tableros.py`
+     lo lee para heredar el bloque fiscal; lo que ya no hace es servirse. */
   fetch("../datos/catalogo_municipal.json").then(r => r.json()),
   fetch("../datos/municipios_municipal.json").then(r => r.json()),
   fetch("../datos/fiscal.json").then(r => r.json()),
@@ -538,11 +680,23 @@ Promise.all([
   // quedaba en blanco entera en vez de perder sólo el mapa. Además así el
   // catálogo es verificable sin navegador con GPU.
   montarCategorias();
+  /* El conmutador de censo se apaga si el catálogo no trae serie: en el tablero
+     de manzana ningún indicador tiene `s12` —las fichas por manzano son sólo de
+     2024— y ofrecer un botón que no puede hacer nada es peor que no tenerlo. */
+  if (haySerie())
+    anioSeg.querySelectorAll("button").forEach(b =>
+      b.onclick = e => { e.stopPropagation(); setAnio(b.dataset.a); });
+  else
+    anioSeg.style.display = "none";
   elegirCategoria(CAT.grupos[0].key);
   document.getElementById("cober").textContent = CAT.niveles.municipio.cobertura;
   document.body.setAttribute("data-listo", JSON.stringify({
     grupos: CAT.grupos.length,
     indicadores: CAT.grupos.reduce((a, g) => a + g.indicadores.length, 0),
+    // se publica la serie MEDIDA, que es la que hay que poder verificar sin abrir
+    // el navegador: el flag viejo decía 238 de 240 sobre 176 reales
+    con_serie_2012: CAT.grupos.reduce((a, g) =>
+      a + g.indicadores.filter(i => i.s12).length, 0),
     municipios: MUN.length, gestiones: FIS.anios.length
   }));
 
@@ -612,16 +766,19 @@ function montarCategorias(){
 function elegirCategoria(key){
   cat_actual = CAT.grupos.find(g => g.key === key) || CAT.grupos[0];
   document.querySelector("#cat-btn .cn").textContent = cat_actual.label;
-  // ⚠️ El conteo se SACA DE LOS DATOS. Estaba escrito a mano ("193 indicadores")
-  //    y al cambiar de catálogo siguió mostrando 193 sobre 210, sin fallar.
-  const nInd = CAT.grupos.reduce((a, g) => a + g.indicadores.length, 0);
-  document.getElementById("kick-n").textContent =
-    `${CAT.grupos.length} categorías · ${nInd} indicadores`;
   document.querySelectorAll("#cat-drop .cat-op").forEach(o =>
     o.classList.toggle("on", o.dataset.g === cat_actual.key));
   montarIndicadores();
-  const primero = cat_actual.indicadores.find(i => disponible(i)) || cat_actual.indicadores[0];
+  /* Al entrar a una categoría se elige uno que SE PUEDA MIRAR en el censo en
+     pantalla. Sin esto, en 2012 varias categorías abrían con un mapa gris y el
+     lector tenía que adivinar que el problema era el indicador y no el año. */
+  const primero = cat_actual.indicadores.find(i => disponible(i) && !mudo(i))
+               || cat_actual.indicadores.find(i => disponible(i))
+               || cat_actual.indicadores[0];
   if (primero) elegirIndicador(primero.key);
+  // ⚠️ El conteo se SACA DE LOS DATOS. Estaba escrito a mano ("193 indicadores")
+  //    y al cambiar de catálogo siguió mostrando 193 sobre 210, sin fallar.
+  actualizarPistas();
 }
 /* Un indicador está disponible si existe en el nivel activo. */
 const disponible = i => nivel === "municipio" ? !!i.k_mun : !!i.k_mz;
@@ -631,15 +788,19 @@ const disponible = i => nivel === "municipio" ? !!i.k_mun : !!i.k_mz;
    que hay. La miniatura entonces muestra la región tal como se vería al bajar. */
 function valorParaMini(m, ind){
   if (ind.k_mun) return valorMunicipal(m, ind);
+  if (mudo(ind)) return null;
   return m.urbano ? m.urbano[ind.k_mz] : null;
 }
+/* De dónde salen los valores de la miniatura, que es lo que decide qué puede
+   declararse (ver `escala`). */
+const ambitoMini = ind => ind.k_mun ? "municipio" : "urbano";
 /* Miniatura de la región pintada con el indicador de la tarjeta, igual que en
    los atlas nacionales: 9 siluetas precalculadas en un lienzo 100×100. */
 function miniSVG(ind){
   if (!MINI) return "";
   const vals = MUN.map(m => valorParaMini(m, ind));
   const pes = MUN.map(pesoMunicipal);
-  const e = escala(vals, pes, ind.dir, !!ind.div, ind.unit);
+  const e = escala(vals, pes, ind, ambitoMini(ind));
   const p = MUN.map((m, k) => {
     const d = MINI.paths[m.sigep];
     return d ? `<path d="${d}" fill="${tonoDe(e, vals[k])}"/>` : "";
@@ -659,15 +820,22 @@ function miniSVG(ind){
 //   nada y "Sólo a nivel municipio · 12" separa una lista que no está partida.
 const hayManzana = () => !!(CAT.niveles && CAT.niveles.manzana);
 
+/* El motivo de la ausencia, siempre con una frase de reserva: un indicador
+   apagado sin explicación es una caja negra —el lector no puede saber si el censo
+   no lo trae o si no lo hicimos— y eso es peor que no apagarlo. */
+const motivoSinSerie = i => i.w12 || "Sin cifra comparable para el censo de 2012.";
+
 function tarjeta(i, n){
   const ok = disponible(i);
+  const sinSerie = mudo(i);
   const dosNiveles = hayManzana();
   const badge = i.nivel === "ambos" ? '<span class="co-n">municipio + manzana</span>'
     : i.nivel === "manzana" ? '<span class="co-n">sólo manzana</span>'
     : i.fuente === "fiscal" ? '<span class="co-n">fiscal · 10 gestiones</span>'
     : dosNiveles ? '<span class="co-n">sólo municipio</span>' : '';
-  return `<div class="ind${ok ? "" : " off"}" data-k="${i.key}" style="--d:${Math.min(n,14)*14}ms">
-    <div><div class="i-nm">${i.label}</div><div class="i-df">${i.desc || ""}</div>${badge}</div>
+  return `<div class="ind${ok ? "" : " off"}${sinSerie ? " sin12" : ""}" data-k="${i.key}" style="--d:${Math.min(n,14)*14}ms">
+    <div>${sinSerie ? '<span class="i-tag">Sólo 2024</span>' : ""}<div class="i-nm">${i.label}</div>
+    <div class="i-df">${sinSerie ? motivoSinSerie(i) : (i.desc || "")}</div>${badge}</div>
     ${miniSVG(i)}</div>`;
 }
 function montarIndicadores(){
@@ -698,14 +866,15 @@ function elegirIndicador(key){
   if (!i) return;
   ind_actual = i;
   marcarActivo();
-  document.getElementById("p-sub").textContent = i.desc || i.label;
+  actualizarSubtitulo();
 
   // El toggle de manzana se apaga cuando el indicador no baja, y se explica.
   const bMz = document.querySelector('#niv button[data-n="manzana"]');
   bMz.disabled = !i.k_mz;
   if (!i.k_mz && nivel === "manzana") cambiarNivel("municipio");
 
-  document.getElementById("anios").classList.toggle("on", i.fuente === "fiscal");
+  document.getElementById("anios").classList.toggle(
+    "on", i.fuente === "fiscal" && ANIO === "2024");
   if (i.fuente === "fiscal") montarAnios();
   avisar(i);
   pintar();
@@ -721,7 +890,13 @@ function montarAnios(){
 function avisar(i){
   const el = document.getElementById("aviso");
   let txt = "";
-  if (i.fuente === "fiscal")
+  if (!i){ el.innerHTML = ""; el.classList.remove("on"); return; }
+  if (mudo(i))
+    /* Va primero y gana a los demás avisos: si el mapa está gris, por qué está
+       gris es lo único que hace falta leer. */
+    txt = `<b>${ANIO === "cambio" ? "Sin cambio que mostrar." : "Sin cifra para 2012."}</b> `
+        + motivoSinSerie(i);
+  else if (i.fuente === "fiscal")
     txt = "<b>No baja a manzana.</b> No existe ejecución presupuestaria por manzano: el dato fiscal se publica por municipio.";
   else if (i.par_manzana)
     txt = `<b>Cambia de definición al bajar.</b> ${i.par_manzana.nota}`;
@@ -731,6 +906,61 @@ function avisar(i){
     txt = "<b>Sólo existe a nivel de manzana.</b> No tiene equivalente publicado por municipio.";
   el.innerHTML = txt;
   el.classList.toggle("on", !!txt);
+}
+
+/* ── CENSO ───────────────────────────────────────────────────────────────────
+   El conmutador se APAGA solo si el catálogo no trae serie censal: así el mismo
+   archivo sirve el tablero municipal (176 indicadores con 2012) y el de manzana
+   (ninguno: las fichas por manzano son sólo de 2024), sin copias del código.
+   Es el mismo criterio con que `hayManzana()` decide los separadores de nivel. */
+const anioSeg = document.getElementById("anio-seg");
+function setAnio(a){
+  if (a === ANIO) return;
+  ANIO = a;
+  anioSeg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.a === a));
+  /* Las tarjetas se rehacen porque su miniatura, su descripción y su estado de
+     apagado dependen del censo en pantalla. */
+  montarIndicadores();
+  actualizarPistas();
+  /* El selector de gestiones no tiene sentido fuera de 2024: el indicador fiscal
+     queda mudo, así que ofrecerle diez años a un mapa gris es ruido. */
+  document.getElementById("anios").classList.toggle(
+    "on", !!ind_actual && ind_actual.fuente === "fiscal" && ANIO === "2024");
+  avisar(ind_actual);
+  pintar();
+}
+/* Cuántos indicadores se pueden mirar en el censo en pantalla. Sale de MEDIR
+   `s12`, no de un total escrito a mano: el conteo cableado ("193 indicadores")
+   ya sobrevivió una vez a un cambio de catálogo mostrando el número viejo. */
+function actualizarPistas(){
+  const total = CAT.grupos.reduce((a, g) => a + g.indicadores.length, 0);
+  const con12 = CAT.grupos.reduce((a, g) => a + g.indicadores.filter(i => i.s12).length, 0);
+  document.getElementById("kick-n").textContent = ANIO === "2024"
+    ? `${CAT.grupos.length} categorías · ${total} indicadores`
+    : `${CAT.grupos.length} categorías · ${con12} con serie 2012`;
+  const ts = document.getElementById("t-s");
+  if (ts) ts.innerHTML = (ANIO === "cambio" ? "Cambio 2012→2024" : "Censo " + ANIO)
+    + ` · <b>${MUN.length} municipios</b>`;
+  actualizarSubtitulo();
+}
+/* Un solo dueño del subtítulo del panel, porque hay tres cosas que quieren
+   escribirlo y antes se pisaban: en 2024 manda la definición del indicador; con
+   un indicador mudo manda el MOTIVO —que es lo que el lector necesita justo
+   entonces— y si no, cuánto de la categoría se puede mirar en ese censo. */
+function actualizarSubtitulo(){
+  const el = document.getElementById("p-sub");
+  const i = ind_actual;
+  if (ANIO === "2024"){
+    el.textContent = i ? (i.desc || i.label) : "elegí un indicador para verlo en el mapa";
+    return;
+  }
+  if (i && mudo(i)){ el.textContent = motivoSinSerie(i); return; }
+  const n = cat_actual.indicadores.filter(x => x.s12).length;
+  const N = cat_actual.indicadores.length;
+  el.textContent =
+      n === 0 ? `ninguno de los ${N} de esta categoría tiene cifra de 2012`
+    : n === N ? `los ${n} tienen serie 2012 · elegí uno para verlo en el mapa`
+    : `${n} de ${N} con serie 2012 · los demás quedan apagados`;
 }
 
 /* ── NIVEL ───────────────────────────────────────────────────────────────── */
@@ -816,12 +1046,58 @@ async function cargarManzanas(){
 /* ── VALORES ─────────────────────────────────────────────────────────────── */
 function valorMunicipal(m, ind){
   if (!ind.k_mun) return null;
+  /* El mudo va PRIMERO, antes de la rama fiscal: los 30 indicadores fiscales no
+     tienen lectura censal de 2012 (`s12:false`), así que fuera de 2024 devuelven
+     null y el mapa queda gris con el motivo escrito, en vez de mostrar una
+     gestión del MEFP como si fuera un censo. */
+  if (mudo(ind)) return null;
   if (ind.fuente === "fiscal"){
     const e = FIS.entidades[m.sigep];
     const s = e && e.s && e.s[ind.k_mun];
     return s ? s[anio_i] : null;
   }
-  return m.municipal ? m.municipal[ind.k_mun] : null;
+  const v24 = m.municipal ? m.municipal[ind.k_mun] : null;
+  if (ANIO === "2024") return v24 === undefined ? null : v24;
+  const v12 = m.municipal_2012 ? m.municipal_2012[ind.k_mun] : null;
+  if (ANIO === "2012") return v12 === undefined ? null : v12;
+  return difIntercensal(v12, v24, ind);
+}
+/* La población que se rotula es la del censo EN PANTALLA. En modo Cambio se usa
+   la de 2024, que es la actual, y el rótulo lo dice. */
+function poblacionDe(m){
+  const c = ANIO === "2012" ? m.municipal_2012 : m.municipal;
+  const v = c ? c.pob_total : null;
+  return v === null || v === undefined || !isFinite(v) ? (m.personas_urbano || 0) : v;
+}
+/* Para un CONTEO la magnitud de la región es la SUMA de los 9. El agregado que
+   viaja en `region` es un promedio ponderado y para un conteo no significa nada,
+   así que la suma se hace del dato. */
+function sumaRegion(ind, caja){
+  let t = null;
+  for (const m of MUN){
+    const v = m[caja] ? m[caja][ind.k_mun] : null;
+    if (v === null || v === undefined || !isFinite(v)) continue;
+    t = (t || 0) + v;
+  }
+  return t;
+}
+/* La cifra de la REGIÓN contra la que se lee un municipio, en el censo que esté
+   en pantalla.
+   ★ EL CAMBIO DE LA REGIÓN ES LA DIFERENCIA DE LOS DOS AGREGADOS, no el promedio
+     de los 9 cambios: promediar cambios le daría el mismo peso a Colpa Bélgica
+     (5.700 habitantes) que a la capital (1,7 millones). */
+function refRegion(ind){
+  if (!CAT.region || !ind.k_mun) return null;
+  const conteo = esConteo(ind);
+  const agg = anio => {
+    if (conteo) return sumaRegion(ind, anio === "2012" ? "municipal_2012" : "municipal");
+    const caja = anio === "2012" ? CAT.region.municipal_2012 : CAT.region.municipal;
+    const v = caja ? caja[ind.k_mun] : null;
+    return v === undefined || v === null || !isFinite(v) ? null : v;
+  };
+  if (ANIO === "cambio")
+    return {v: difIntercensal(agg("2012"), agg("2024"), ind), tipo: "cambio de la región"};
+  return {v: agg(ANIO), tipo: conteo ? "total de la región" : "región"};
 }
 function pesoMunicipal(m){
   if (ind_actual && ind_actual.fuente === "fiscal"){
@@ -849,7 +1125,7 @@ function pintar(){
   if (nivel === "municipio"){
     const vals = MUN.map(m => valorMunicipal(m, i));
     const pes = MUN.map(pesoMunicipal);
-    e = escala(vals, pes, i.dir, !!i.div, i.unit);
+    e = escala(vals, pes, i, "municipio");
     if (conMapa){
       const src = map.getSource("mun");
       const d = src._data;
@@ -867,7 +1143,7 @@ function pintar(){
       if (!col) continue;
       for (let k = 0; k < d.n; k++){ vals.push(col[k]); pes.push(p ? p[k] : 0); }
     }
-    e = escala(vals, pes, i.dir, false, i.unit);
+    e = escala(vals, pes, i, "manzana");
     if (mzTodas && map && map.getSource("mz")){
       mzTodas.features.forEach(f => {
         const d = mzCargadas[f.properties.s];
@@ -885,22 +1161,36 @@ function pintar(){
 
 /* ── LEYENDA ─────────────────────────────────────────────────────────────── */
 function termometro(e, i){
-  document.getElementById("tm-t").innerHTML = `${i.label} <small>${i.unit || ""}</small>`;
+  const u = uMode(i);
+  const eti = ANIO === "cambio" ? " · cambio 2012→2024" : ANIO === "2012" ? " · censo 2012" : "";
+  document.getElementById("tm-t").innerHTML =
+    `${i.label} <small>${u || ""}${eti}</small>`;
   const bar = document.getElementById("tm-bar");
   if (!e){ bar.style.background = "var(--linea)";
     document.getElementById("tm-lo").textContent = "";
     document.getElementById("tm-hi").textContent = "";
-    document.getElementById("tm-st").textContent = "sin datos"; return; }
+    // el motivo también acá: la leyenda es donde el lector va a buscar por qué el
+    // mapa no dice nada, y "sin datos" no distingue un hueco de una imposibilidad
+    document.getElementById("tm-st").textContent =
+      mudo(i) ? motivoSinSerie(i) : "sin datos"; return; }
   bar.style.background = `linear-gradient(to right,${e.tonos.join(",")})`;
   const cap = e.recorte;
-  document.getElementById("tm-lo").innerHTML = `<span class="cap">${cap ? "≤ " : ""}</span>${fmt(e.lo, i.unit)}`;
-  document.getElementById("tm-hi").innerHTML = `<span class="cap">${cap ? "≥ " : ""}</span>${fmt(e.hi, i.unit)}`;
+  document.getElementById("tm-lo").innerHTML = `<span class="cap">${cap ? "≤ " : ""}</span>${fmtM(e.lo, i)}`;
+  document.getElementById("tm-hi").innerHTML = `<span class="cap">${cap ? "≥ " : ""}</span>${fmtM(e.hi, i)}`;
   bar.querySelectorAll(".tm-mk").forEach(m => m.remove());
   const mk = document.createElement("div"); mk.className = "tm-mk"; mk.style.left = "50%";
   bar.appendChild(mk);
   const unidad = nivel === "municipio" ? "municipios" : "manzanas con dato";
+  /* ⚠️ El pivote se recorta para que no quede pegado a un borde de la rampa
+     (`pad` en `escala`). Cuando eso pasa, el número dibujado YA NO ES el agregado
+     de la región: publicarlo igual bajo el rótulo "región" es rebautizar un borde
+     con el nombre de una estadística. Se dice el real y se nombra el recorte. */
+  const rec = e.pivReal !== undefined && e.pivReal !== null
+           && Math.abs(e.pivReal - e.piv) > 1e-9;
+  const piv = rec ? `${e.tipo} <b>${fmtM(e.pivReal, i)}</b> <small>(escala centrada en ${fmtM(e.piv, i)})</small>`
+                  : `${e.tipo} <b>${fmtM(e.piv, i)}</b>`;
   document.getElementById("tm-st").innerHTML =
-    `n <b>${nf(e.n,0)}</b> ${unidad} · mín <b>${fmt(e.min,i.unit)}</b> · ${e.tipo} <b>${fmt(e.piv,i.unit)}</b> · máx <b>${fmt(e.max,i.unit)}</b>`;
+    `n <b>${nf(e.n,0)}</b> ${unidad} · mín <b>${fmtM(e.min,i)}</b> · ${piv} · máx <b>${fmtM(e.max,i)}</b>`;
 }
 
 /* ── COMPARATIVO ENTRE MUNICIPIOS ────────────────────────────────────────────
@@ -914,7 +1204,8 @@ function comparativo(e, ind){
   const filas = MUN.map(m => ({m, v: valorParaMini(m, ind)}))
     .sort((a, b) => (b.v === null ? -Infinity : b.v) - (a.v === null ? -Infinity : a.v));
   const con = filas.filter(f => f.v !== null && isFinite(f.v));
-  if (!con.length) return '<div class="sin">Sin datos para este indicador.</div>';
+  if (!con.length) return `<div class="sin">${mudo(ind) ? motivoSinSerie(ind)
+    : "Sin datos para este indicador."}</div>`;
 
   const vmin = Math.min(0, ...con.map(f => f.v)), vmax = Math.max(...con.map(f => f.v));
   const rango = (vmax - vmin) || 1;
@@ -933,7 +1224,7 @@ function comparativo(e, ind){
     const corto = f.m.nombre.length > 16 ? f.m.nombre.slice(0, 15) + "…" : f.m.nombre;
     s += `<text x="0" y="${y + 5.4}" class="cmp-n${sel_ ? " sel" : ""}">${corto}</text>`;
     if (f.v !== null && isFinite(f.v)){
-      const x1 = x(f.v), txt = fmt(f.v, ind.unit);
+      const x1 = x(f.v), txt = fmtM(f.v, ind);
       const tx = Math.min(x1 + 1.4, W - anchoTexto(txt));
       s += `<rect x="${LX}" y="${y + 1}" width="${Math.max(.6, x1 - LX)}" height="6"
               fill="${tonoDe(e, f.v)}" ${sel_ ? 'stroke="#ee9b00" stroke-width="0.8"' : ""}/>`;
@@ -947,7 +1238,7 @@ function comparativo(e, ind){
     if (xp > LX && xp < VX)
       s += `<line x1="${xp}" y1="1.5" x2="${xp}" y2="${filas.length * H + 1.5}" class="cmp-piv"/>`;
   }
-  return `<div class="cmp-t">Comparación entre municipios<span>${e ? e.tipo + " " + fmt(e.piv, ind.unit) : ""}</span></div>
+  return `<div class="cmp-t">Comparación entre municipios<span>${e ? e.tipo + " " + fmtM(e.pivReal != null ? e.pivReal : e.piv, ind) : ""}</span></div>
     <svg class="cmp" viewBox="0 0 ${W} ${alto}" preserveAspectRatio="xMidYMin meet">${s}</svg>`;
 }
 
@@ -1071,36 +1362,50 @@ function ficha(e, i){
        elegido. Sin selección el panel muestra la comparación entre los nueve,
        que es la lectura por defecto de una región. */
     document.getElementById("serie").innerHTML =
-      i.fuente === "fiscal" ? serieSVG(m, i) : "";
+      i.fuente === "fiscal" && ANIO === "2024" ? serieSVG(m, i) : "";
     document.getElementById("d-mun").textContent = m.nombre;
+    // la población que se rotula es la del censo EN PANTALLA: mostrar la de 2024
+    // mientras se mira el mapa de 2012 es una cifra que miente sin avisar
+    const pobM = poblacionDe(m);
     document.getElementById("d-sub").textContent =
-      `${m.ambito === "núcleo" ? "Núcleo metropolitano" : "Área de influencia"} · ${nf(m.municipal ? m.municipal.pob_total : m.personas_urbano, 0)} habitantes`;
+      `${m.ambito === "núcleo" ? "Núcleo metropolitano" : "Área de influencia"} · `
+      + `${nf(pobM, 0)} habitantes${ANIO === "2012" ? " en 2012" : ""}`;
     g.innerHTML = cat_actual.indicadores.filter(x => x.k_mun).map((x, n) => {
+      const sinSerie = mudo(x);
       const v = valorMunicipal(m, x);
-      const todos = MUN.map(y => valorMunicipal(y, x)).filter(z => z !== null && z !== undefined);
-      const pes = MUN.map(pesoMunicipal);
-      const reg = escala(MUN.map(y => valorMunicipal(y, x)), pes, x.dir, !!x.div, x.unit);
-      const dif = v !== null && reg ? v - reg.piv : null;
-      return `<div class="kpi ${x.key === i.key ? "on" : ""}" data-k="${x.key}" style="--d:${Math.min(n,14)*14}ms">
-        <div class="k-l">${x.label}</div><div class="k-v">${fmt(v, x.unit)}</div>
-        <div class="k-c"><span>región <b>${reg ? fmt(reg.piv, x.unit) : "s/d"}</b></span>
-        ${flecha(dif, x.unit)}</div></div>`;
+      const ref = sinSerie ? null : refRegion(x);
+      let comp;
+      if (sinSerie)
+        comp = `<span class="k-w">${motivoSinSerie(x)}</span>`;
+      else if (!ref || ref.v === null)
+        comp = `<span>${refRegion(x) ? refRegion(x).tipo : "región"} <b>s/d</b></span>`;
+      else if (esConteo(x) && ANIO !== "cambio")
+        // contra un TOTAL no se lee una diferencia, se lee una parte
+        comp = `<span>${ref.tipo} <b>${fmtM(ref.v, x)}</b></span>`
+             + `<span>${v !== null && ref.v ? "es el <b>" + nf(100 * v / ref.v, 1) + "%</b>" : ""}</span>`;
+      else
+        comp = `<span>${ref.tipo} <b>${fmtM(ref.v, x)}</b></span>`
+             + flecha(v === null ? null : v - ref.v, uMode(x));
+      return `<div class="kpi ${x.key === i.key ? "on" : ""}${sinSerie ? " sin12" : ""}" data-k="${x.key}" style="--d:${Math.min(n,14)*14}ms">
+        <div class="k-l">${x.label}</div><div class="k-v">${sinSerie ? "s/d" : fmtM(v, x)}</div>
+        <div class="k-c">${comp}</div></div>`;
     }).join("");
   } else {
     document.getElementById("serie").innerHTML = "";
     document.getElementById("d-mun").textContent = "Región Metropolitana";
     // ídem: la población de los 9 se suma del dato. Escrita a mano decía
     // 2.215.919 y el total real del Censo 2024 es 2.282.770.
+    const pobR = MUN.reduce((a, m) => a + (poblacionDe(m) || 0), 0);
     document.getElementById("d-sub").textContent =
-      `${MUN.length} municipios · ${nf(MUN.reduce((a, m) =>
-        a + ((m.municipal && m.municipal.pob_total) || 0), 0), 0)} personas`;
+      `${MUN.length} municipios · ${nf(pobR, 0)} personas`
+      + (ANIO === "2012" ? " en 2012" : ANIO === "cambio" ? " en 2024" : "");
     g.innerHTML = MUN.slice().sort((a,b) => {
       const va = valorMunicipal(a, i), vb = valorMunicipal(b, i);
       return (vb === null ? -1e9 : vb) - (va === null ? -1e9 : va);
     }).map((m, n) => {
       const v = valorMunicipal(m, i);
       return `<div class="kpi" data-s="${m.sigep}" style="--d:${Math.min(n,14)*14}ms">
-        <div class="k-l">${m.nombre}</div><div class="k-v">${fmt(v, i.unit)}</div>
+        <div class="k-l">${m.nombre}</div><div class="k-v">${mudo(i) ? "s/d" : fmtM(v, i)}</div>
         <div class="k-c"><span>${m.ambito}</span><span>${nf(m.manzanas,0)} manzanas</span></div></div>`;
     }).join("");
   }
@@ -1200,20 +1505,38 @@ function tooltipHTML(p, esMz){
     const m = MUN.find(x => x.sigep === p.sigep);
     if (!m) return "";
     nom = m.nombre;
-    const pob = m.municipal ? m.municipal.pob_total : m.personas_urbano;
+    const pob = poblacionDe(m);
     sub = (m.ambito === "núcleo" ? "Núcleo metropolitano" : "Área de influencia")
         + (isFinite(pob) ? ` · ${nf(Math.round(pob), 0)} hab.` : "");
 
     if (hay && e){
-      filas += `<div class="pr"><span>${e.tipo}</span><span><b>${fmt(e.piv, i.unit)}</b> ${flecha(v - e.piv, i.unit)}</span></div>`;
+      if (ANIO === "cambio"){
+        /* Con un CAMBIO en pantalla, compararlo contra el pivote (que es cero)
+           no dice nada: lo que hace falta son los dos censos que lo producen.
+           Se muestran en la unidad del indicador, no en la del cambio. */
+        const a = m.municipal_2012 ? m.municipal_2012[i.k_mun] : null;
+        const b = m.municipal ? m.municipal[i.k_mun] : null;
+        filas += `<div class="pr"><span>2012</span><span><b>${fmt(a, i.unit)}</b></span></div>`
+              +  `<div class="pr"><span>2024</span><span><b>${fmt(b, i.unit)}</b></span></div>`;
+        const r = refRegion(i);
+        if (r && r.v !== null)
+          filas += `<div class="pr"><span>${r.tipo}</span><span><b>${fmtM(r.v, i)}</b> ${flecha(v - r.v, uMode(i))}</span></div>`;
+      } else {
+        // el pivote se recorta para no degenerar la rampa: la diferencia se mide
+        // contra el REAL, o el tooltip informa una brecha que no existe
+        const pr = e.pivReal != null ? e.pivReal : e.piv;
+        filas += `<div class="pr"><span>${e.tipo}</span><span><b>${fmtM(pr, i)}</b> ${flecha(v - pr, uMode(i))}</span></div>`;
+      }
       const otros = MUN.map(x => valorMunicipal(x, i)).filter(z => z !== null && z !== undefined && isFinite(z));
       const puesto = otros.filter(z => z > v).length + 1;
       filas += `<div class="pr"><span>puesto</span><span><b>${puesto}.º</b> más alto de ${otros.length}</span></div>`;
     }
-    if (!hay) nota = "Sin dato publicado para este indicador.";
+    if (!hay) nota = mudo(i) ? motivoSinSerie(i) : "Sin dato publicado para este indicador.";
   }
 
-  const kicker = i.label + (i.fuente === "fiscal" ? ` · ${FIS.anios[anio_i]}` : "");
+  const kicker = i.label
+    + (i.fuente === "fiscal" && ANIO === "2024" ? ` · ${FIS.anios[anio_i]}` : "")
+    + (ANIO === "2012" ? " · censo 2012" : ANIO === "cambio" ? " · cambio 2012→2024" : "");
   const rampa = hay && e
     ? `<div class="pramp" style="background:linear-gradient(to right,${e.tonos.join(",")})">
          <i style="left:${(posEnRampa(e, v) * 100).toFixed(1)}%"></i></div>`
@@ -1221,7 +1544,7 @@ function tooltipHTML(p, esMz){
   return `<div class="pn">${nom}</div><div class="pd">${sub}</div>
     <div class="pind">${kicker}</div>
     <div class="pv"><span class="pchip" style="background:${tonoDe(e, v)}"></span>
-      <b>${hay ? fmt(v, i.unit) : "s/d"}</b></div>
+      <b>${hay ? fmtM(v, i) : "s/d"}</b></div>
     ${rampa}${filas}${nota ? `<div class="pnota">${nota}</div>` : ""}`;
 }
 /* Sigue al cursor y se planta del otro lado cuando no entra: contra el borde

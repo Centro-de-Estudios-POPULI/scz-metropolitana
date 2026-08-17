@@ -35,6 +35,7 @@ Decisión de producto de Carlos: son DOS sitios, no uno.
 import json, pathlib, csv
 import pandas as pd, numpy as np
 from alias import renombrar, ALIAS
+from generar_atlas import SIN_2012
 
 AQUI = pathlib.Path(__file__).parent
 RAIZ = AQUI.parent
@@ -76,6 +77,134 @@ UNIVERSO = {
  "muj12": "las mujeres de 12 años o más",
  "mef": "las mujeres en edad fértil (15 a 49 años)",
 }
+
+# ★ QUÉ ES UN CONTEO — DECLARADO, NO DEDUCIDO DE LA UNIDAD.
+#   La interfaz lo necesita en dos lugares: el PIVOTE de la escala (el promedio
+#   ponderado de un conteo no significa nada legible —da Σp²/Σp, el tamaño del
+#   municipio de la persona promedio— así que un conteo se centra en su mediana)
+#   y la UNIDAD DEL CAMBIO intercensal (un conteo cambia en PORCENTAJE, un
+#   porcentaje cambia en PUNTOS PORCENTUALES).
+#   ⚠️ Venía deducido de la unidad: `unidad === "hab" || unidad === "viv"` en el
+#      JS. Hoy acierta de casualidad —las 4 razones de unidad `pers`
+#      (tam_hogar, pers_x_vivienda…) no son conteos y quedan afuera solas— pero
+#      es exactamente el error que publicó "Personas por hogar: 1.049,2" en la
+#      pantalla de entrada del Atlas nacional y "Viviendas: país 62.550" en su
+#      leyenda. Cuatro veces el mismo error de fondo. Acá se declara.
+CONTEOS = {"pob_total", "pob_hombres", "pob_mujeres", "viviendas",
+           "poblacion_flotante", "saldo_migratorio"}
+
+# ★ POR QUÉ FALTA CADA UNO — DECLARADO, y con la MISMA redacción que el Atlas
+#   nacional. Es el mismo censo y la misma ausencia: dos textos distintos para el
+#   mismo hecho se leen como dos hechos distintos. Se IMPORTAN en vez de
+#   copiarse, para que no se separen con el tiempo.
+#   Los 34 sin serie de acá son 33 de los 36 del nacional más `pct_disc_comunicar`,
+#   que es de la misma familia y comparte el motivo.
+MOTIVO_2012 = dict(SIN_2012)
+MOTIVO_2012.setdefault("pct_disc_comunicar", MOTIVO_2012["pct_disc_ver"])
+MOTIVO_GENERICO = "Sin cifra comparable para 2012."
+# ⚠️ Los 30 fiscales declaraban `serie: true`, pero ahí `serie` significaba OTRA
+#    cosa: la de gestiones 2016-2025. Con un conmutador de censo en pantalla, ese
+#    flag prometía 2012 en 30 indicadores que no lo tienen ni pueden tenerlo.
+MOTIVO_FISCAL = ("Es un indicador fiscal, no censal: se publica por gestión "
+                 "(2016-2025) y no tiene lectura del censo de 2012.")
+
+
+def cuantil(v, p):
+    """El MISMO cuantil que usa el JS del tablero, para que el corte de color
+    caiga en el mismo lugar del que lo calcularía el navegador."""
+    if not v:
+        return None
+    v = sorted(v)
+    h = (len(v) - 1) * p
+    a = int(h // 1)
+    b = min(a + 1, len(v) - 1)
+    return v[a] + (h - a) * (v[b] - v[a])
+
+
+def medir_serie(v12, claves, cods):
+    """
+    ★ LA PRESENCIA SE MIDE DEL DATO; lo único que se declara es la EXPLICACIÓN.
+
+    Lo que había era `serie = {k for k in ks_a if k in v12.columns}`: mide que la
+    COLUMNA EXISTA, no que tenga valor. Los motores emiten la columna igual
+    —vacía— cuando 2012 no puede dar el indicador, así que el catálogo declaraba
+    serie 2012 en 208 de 210 indicadores y sólo 176 tenían cifra. Con un
+    conmutador de censo en la interfaz eso no es un flag inexacto: es prometerle
+    al lector un mapa que va a salir gris entero.
+
+    Un indicador con dato en ALGUNOS municipios sí tiene serie —el hueco es del
+    municipio, no del censo— pero se avisa fuerte, porque hoy no hay ninguno y
+    si aparece uno hay que mirarlo.
+    """
+    con, parcial, sin = set(), {}, set()
+    for k in claves:
+        if v12 is None or k not in v12.columns:
+            sin.add(k)
+            continue
+        n = int(v12.loc[v12.index.isin(cods), k].notna().sum())
+        if n == 0:
+            sin.add(k)
+        else:
+            con.add(k)
+            if n < len(cods):
+                parcial[k] = n
+    return con, parcial, sin
+
+
+def anotar_serie(grupos, fichas, con12):
+    """
+    Cada indicador declara si se puede mirar en 2012, por qué no, y su ESCALA.
+
+    ★ EL DOMINIO DE COLOR VIAJA EN EL CATÁLOGO, no se calcula en el navegador.
+      La decisión de producto es UNA SOLA ESCALA PARA LOS DOS CENSOS —así un
+      mismo tono significa un mismo valor y al alternar de año el corrimiento de
+      color ES el avance— y para eso el rango se toma sobre la UNIÓN de 2012 y
+      2024. Calcularlo en el cliente obligaría a esperar los dos censos antes
+      del primer pintado.
+      Se calcula sobre los valores YA REDONDEADOS que emite `bloque()`, que son
+      los que ve el navegador, para que el corte caiga en el mismo lugar.
+
+    Los fiscales quedan SIN `dom` a propósito: su valor depende de la gestión
+    elegida, así que el rango lo sigue calculando la interfaz sobre lo que hay en
+    pantalla.
+    """
+    for g in grupos:
+        for i in g["indicadores"]:
+            k = i["key"]
+            if i.get("fuente") == "fiscal":
+                i["s12"] = False
+                i["w12"] = MOTIVO_FISCAL
+                if "serie" in i:
+                    i["serie_gestiones"] = i.pop("serie")
+                continue
+            if k in CONTEOS:
+                i["agg"] = "suma"
+            i["s12"] = k in con12
+            if k not in con12:
+                i["w12"] = MOTIVO_2012.get(k, MOTIVO_GENERICO)
+            a = [f["municipal"].get(k) for f in fichas]
+            b = [f.get("municipal_2012", {}).get(k) for f in fichas] if k in con12 else []
+            u = [x for x in a + b if x is not None]
+            if u:
+                i["dom"] = [round(cuantil(u, .02), 4), round(cuantil(u, .98), 4)]
+            if k not in con12:
+                continue
+            # el dominio del CAMBIO, simétrico alrededor de cero: un avance y un
+            # retroceso del mismo tamaño tienen que pintarse con la misma fuerza,
+            # o el mapa miente sobre la magnitud
+            ds = []
+            for f in fichas:
+                x, y = f.get("municipal_2012", {}).get(k), f["municipal"].get(k)
+                if x is None or y is None:
+                    continue
+                if k in CONTEOS:
+                    if x:
+                        ds.append(100 * (y - x) / x)
+                else:
+                    ds.append(y - x)
+            if ds:
+                i["domd"] = round(max(abs(cuantil(ds, .02)),
+                                      abs(cuantil(ds, .98))) or 1, 4)
 
 
 def describir(i, glosario):
@@ -147,8 +276,12 @@ def bloque(val, ks, ci):
     return o
 
 
-def catalogo(claves, decl, nivel, glosario, avisos=None, err=None, con_serie=None):
-    """Catálogo en la forma que consume la web: grupos con `k_mun` / `k_mz`."""
+def catalogo(claves, decl, nivel, glosario, avisos=None, err=None):
+    """Catálogo en la forma que consume la web: grupos con `k_mun` / `k_mz`.
+
+    La serie 2012 NO se declara acá: la anota `anotar_serie()` midiéndola del
+    dato ya emitido. Antes salía de este punto un campo `serie` que nadie leía y
+    que mentía en 62 de 240 indicadores."""
     por = {}
     for k in claves:
         i = decl[k]
@@ -157,8 +290,6 @@ def catalogo(claves, decl, nivel, glosario, avisos=None, err=None, con_serie=Non
               "nivel": nivel, "k_mun": k,
               "k_mz": k if nivel == "ambos" else None,
               "continuo": nivel == "ambos"}
-        if con_serie is not None:
-            it["serie"] = k in con_serie
         if avisos and k in avisos:
             it["aviso"] = (f"La suma de las manzanas y la cifra urbana del municipio "
                            f"difieren {err.get(k, 0):.1f} pp en promedio: varía fuerte "
@@ -203,8 +334,21 @@ def main():
 
     # ── TABLERO A — municipal ────────────────────────────────────────────────
     ks_a = sorted(k for k in v24.columns if k in decl)
-    serie = {k for k in ks_a if k in v12.columns}
-    print(f"TABLERO A · municipal: {len(ks_a)} indicadores · con serie 2012: {len(serie)}")
+    con12, parcial12, sin12 = medir_serie(v12, ks_a, cods)
+    print(f"TABLERO A · municipal: {len(ks_a)} indicadores · "
+          f"con serie 2012 MEDIDA: {len(con12)} · sólo 2024: {len(sin12)}")
+    if parcial12:
+        print("  ⚠️ serie 2012 INCOMPLETA (dato en algunos municipios): "
+              + ", ".join(f"{k} {n}/{len(cods)}" for k, n in sorted(parcial12.items())))
+    huerf = sorted(k for k in sin12 if k not in MOTIVO_2012)
+    if huerf:
+        # ⚠️ Un "sólo 2024" sin explicación es una caja negra en la pantalla: el
+        #    lector no puede saber si el censo no lo trae o si no lo hicimos.
+        print(f"  ⚠️ SIN MOTIVO DECLARADO (agregar a SIN_2012 en generar_atlas.py): "
+              f"{', '.join(huerf)}")
+    sobran = sorted(k for k in MOTIVO_2012 if k in con12)
+    if sobran:
+        print(f"  ⚠️ declarados sin 2012 pero el motor SÍ los calcula: {', '.join(sobran)}")
     # ★ LOS FISCALES SE CONSERVAN TAL CUAL. No salen del microdato censal sino de
     #   la ejecución presupuestaria del MEFP (30 indicadores × 10 gestiones, en
     #   `fiscal.json`), así que no pasan por los motores ni por esta validación:
@@ -219,22 +363,82 @@ def main():
           f"{sum(len(g['indicadores']) for g in g_fis)} indicadores × "
           f"{len(fiscal.get('anios', []))} gestiones")
 
+    # las fichas se arman ANTES del catálogo porque el catálogo declara el
+    # dominio de color, y ese dominio se mide sobre los valores ya redondeados
+    # que van a viajar — no sobre los del dataframe
+    fichas_a = [ficha(m, ks_a, False, True) for m in muns]
+    grupos_a = catalogo(ks_a, decl, "municipio", glosario) + g_fis
+    anotar_serie(grupos_a, fichas_a, con12)
+    ncont = sum(1 for g in grupos_a for i in g["indicadores"] if i.get("agg") == "suma")
+    ndom = sum(1 for g in grupos_a for i in g["indicadores"] if i.get("dom"))
+    print(f"  serie declarada: {sum(1 for g in grupos_a for i in g['indicadores'] if i['s12'])}"
+          f" con 2012 · {ncont} conteos · {ndom} con dominio de color declarado")
+    # ── EL COSTO DE COMPARTIR ESCALA, DICHO EN VOZ ALTA ──────────────────────
+    # Compartir el dominio entre los dos censos es una decisión de producto (un
+    # tono = un valor), y su costo es que el mapa de 2024 usa menos rampa. Con 343
+    # municipios el Atlas nacional midió que no costaba nada; con 9 sí cuesta, así
+    # que se informa en vez de dejarlo pasar: un tope que nadie nombra se lee como
+    # "acá no se recortó nada".
+    # Se mide la POSICIÓN EN LA RAMPA, no el tramo de valores sobre el dominio:
+    # son cosas distintas porque el pivote parte la rampa en dos mitades de ancho
+    # numérico desigual, y es la posición la que el lector ve como color. Réplica
+    # exacta de `escala()` + `posEnRampa()` del JS, para que este número y el que
+    # se ve en pantalla sean el mismo.
+    reg24 = region(v24, d24, ks_a, cods)
+
+    def tramo_rampa(i):
+        lo, hi = i["dom"]
+        vals = [f["municipal"].get(i["key"]) for f in fichas_a]
+        vals = [x for x in vals if x is not None]
+        if not vals or hi <= lo:
+            return None
+        piv = (cuantil(sorted(vals), .5) if i.get("agg") == "suma"
+               else reg24.get(i["key"], cuantil(sorted(vals), .5)))
+        pad = (hi - lo) * .08
+        piv = min(max(piv, lo + pad), hi - pad)
+        def pos(x):
+            t = (.5 if piv == lo else .5 * (x - lo) / (piv - lo)) if x <= piv \
+                else .5 + .5 * (x - piv) / (hi - piv)
+            return max(0.0, min(1.0, t))
+        p = [pos(x) for x in vals]
+        return max(p) - min(p)
+
+    angosto = sorted((round(t, 2), i["key"]) for g in grupos_a for i in g["indicadores"]
+                     if i.get("s12") and i.get("dom")
+                     and (t := tramo_rampa(i)) is not None and t < .5)
+    if angosto:
+        print(f"  ⚠️ al compartir escala, {len(angosto)} indicadores dejan el mapa de 2024 "
+              f"usando menos de la MITAD de la rampa (el avance intercensal fue grande):")
+        for frac, k in angosto:
+            print(f"    {k:26} usa {frac:.2f} de la rampa")
+    else:
+        print("  compartir escala no deja a ningún indicador bajo media rampa en 2024")
+
     (SALIDA / "catalogo_municipal.json").write_text(json.dumps({
         "tablero": "municipal", "anios_fiscal": fiscal.get("anios", []),
         "niveles": {"municipio": {"n": len(muns), "fuente": "INE Censo 2024 y 2012 · MEFP",
                                   "cobertura": COBERTURA["municipio"]}},
-        "grupos": catalogo(ks_a, decl, "municipio", glosario, con_serie=serie) + g_fis,
+        "grupos": grupos_a,
         "region": {"municipal": region(v24, d24, ks_a, cods),
-                   "municipal_2012": region(v12, d12, sorted(serie), cods)},
+                   "municipal_2012": region(v12, d12, sorted(con12), cods)},
     }, ensure_ascii=False), encoding="utf-8")
     (SALIDA / "municipios_municipal.json").write_text(json.dumps(
-        [ficha(m, ks_a, False, True) for m in muns], ensure_ascii=False), encoding="utf-8")
+        fichas_a, ensure_ascii=False), encoding="utf-8")
 
     # ── TABLERO B — municipio ↔ manzana ──────────────────────────────────────
     ks_b = sorted(set(comp["verificados"]) & set(decl) & set(v24.columns))
     avisos, err = set(comp.get("con_aviso", [])), comp.get("error_pp", {})
     print(f"TABLERO B · comparables: {len(ks_b)} indicadores "
           f"({len(avisos)} con aviso · {len(comp.get('excluidos', []))} excluidos por definición)")
+    grupos_b = catalogo(ks_b, decl, "ambos", glosario, avisos, err)
+    # el nivel manzana no tiene serie intercensal (las fichas por manzano son sólo
+    # de 2024), así que acá no va `s12` ni dominio declarado: lo único que hace
+    # falta es que un conteo se sepa conteo, para que la escala lo centre en su
+    # mediana en vez de en un promedio ponderado que no significa nada
+    for g in grupos_b:
+        for i in g["indicadores"]:
+            if i["key"] in CONTEOS:
+                i["agg"] = "suma"
     (SALIDA / "catalogo_manzana.json").write_text(json.dumps({
         "tablero": "manzana", "anios_fiscal": [],
         "niveles": {k: {"n": len(muns) if k == "municipio" else 38892,
@@ -242,7 +446,7 @@ def main():
                                    else "INE Censo 2024, fichas por manzano"),
                         "cobertura": COBERTURA[k]} for k in ("municipio", "manzana")},
         "excluidos": comp.get("excluidos", []),
-        "grupos": catalogo(ks_b, decl, "ambos", glosario, avisos, err),
+        "grupos": grupos_b,
         "region": {"municipal": region(v24, d24, ks_b, cods),
                    "urbano": region(vur, dur, ks_b, cods)},
     }, ensure_ascii=False), encoding="utf-8")

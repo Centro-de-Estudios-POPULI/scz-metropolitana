@@ -53,8 +53,13 @@ def derivar(html, cfg):
     html = html.replace('fetch("datos/', 'fetch("../datos/')
     html = html.replace('fetch(`datos/', 'fetch(`../datos/')
     # ── cada tablero, su par de archivos ──
-    html = html.replace('"../datos/catalogo_tablero.json"', f'"../datos/{cfg["catalogo"]}"')
-    html = html.replace('"../datos/municipios.json"', f'"../datos/{cfg["municipios"]}"')
+    # ⚠️ La plantilla apunta al par del tablero MUNICIPAL, no al pipeline viejo.
+    #    `web/index.html` no es sólo una plantilla: es la página que responde en
+    #    `/web/`, y apuntando a `catalogo_tablero.json` servía 193 indicadores sin
+    #    validar y con el denominador equivocado. Para el sitio municipal estos dos
+    #    reemplazos quedan en no-op, que es justo lo que se quiere.
+    html = html.replace('"../datos/catalogo_municipal.json"', f'"../datos/{cfg["catalogo"]}"')
+    html = html.replace('"../datos/municipios_municipal.json"', f'"../datos/{cfg["municipios"]}"')
     # ── título y cabecera ──
     html = re.sub(r"<title>.*?</title>", f"<title>{cfg['titulo']}</title>", html, count=1)
     html = re.sub(r'(<div class="t-h">).*?(</div>)',
