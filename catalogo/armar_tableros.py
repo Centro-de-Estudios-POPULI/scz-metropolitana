@@ -45,7 +45,10 @@ SPINE = pathlib.Path(r"C:\Users\HP\OneDrive\Desktop\Proyectos\bo-geo-maestro\spi
 POR_BLOQUE = {"municipal": "n_viviendas", "municipal_urbano": "n_viviendas",
               "personas": "poblacion", "personas_urbano": "poblacion",
               "nbi": "poblacion_nbi", "flujos_municipal": "trabajan_en_su_municipio"}
-FUENTES24 = ["municipal", "personas", "nbi", "otros", "flujos_municipal"]
+# ⚠️ `geo` (superficie y densidad municipal) va al final a propósito: es la
+#    única fuente que NO sale del censo sino del mapa maestro. Sin ella la
+#    densidad se calculaba y no llegaba a ningún tablero.
+FUENTES24 = ["municipal", "personas", "nbi", "otros", "flujos_municipal", "geo"]
 FUENTES12 = ["municipal", "personas", "nbi", "otros"]
 FUENTES_URB = ["municipal_urbano", "personas_urbano"]
 

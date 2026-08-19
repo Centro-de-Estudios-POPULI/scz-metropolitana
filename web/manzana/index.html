@@ -664,12 +664,31 @@ function expresionColor(e, campo){
 /* ── FORMATO ─────────────────────────────────────────────────────────────── */
 const nf = (v, d) => v === null || v === undefined || !isFinite(v) ? "s/d"
   : (+v).toLocaleString("es-BO", {minimumFractionDigits: d, maximumFractionDigits: d});
+/* ★ LOS DECIMALES SE ELIGEN POR LA MAGNITUD, no fijos en uno.
+   Con un decimal fijo, 99 de los 343 municipios se mostraban como
+   "0,0 hab/ha" y NINGUNO es cero: el menor tiene 0,00222. Un valor no nulo
+   impreso como cero no es un redondeo, es otro dato — y encima el que un
+   lector interpretaría como "acá no vive nadie".
+   Las RAZONES (densidad, personas por hogar, masculinidad) son continuas por
+   construcción —un conteo dividido por una superficie o por otro conteo— así
+   que el decimal les corresponde; lo que no corresponde es que sea siempre el
+   mismo. Por debajo de 1 se muestran dos cifras significativas.
+   Los CONTEOS (hab, viv) siguen sin decimales: ahí sí sería inventar precisión. */
+function decimales(v, u){
+  if (u === "%" || u === "pp") return 1;
+  const a = Math.abs(v);
+  if (a === 0) return 0;
+  if (a >= 100) return 0;
+  if (a >= 1) return 1;
+  // dos cifras significativas: 0,42 · 0,067 · 0,0022
+  return Math.min(6, 1 - Math.floor(Math.log10(a)));
+}
 function fmt(v, u){
   if (v === null || v === undefined || !isFinite(v)) return "s/d";
   if (u === "hab" || u === "viv") return nf(Math.round(v), 0);
   if (u === "%") return nf(v, 1) + "%";
   if (u === "pp") return (v > 0 ? "+" : "") + nf(v, 1) + " pp";
-  return nf(v, 1) + (u ? " " + u : "");
+  return nf(v, decimales(v, u)) + (u ? " " + u : "");
 }
 /* En modo Cambio el signo es parte del dato: un avance y un retroceso del mismo
    tamaño son cosas distintas, y `fmt` sólo antepone el signo para la unidad "pp".
