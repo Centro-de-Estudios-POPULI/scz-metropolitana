@@ -401,7 +401,7 @@ const SENAL = "#8bc53f";
      z11 una sola tesela se lleva 8.707 manzanas de un píxel. Eso es la mancha
      que este proyecto decidió no mostrar, y encima es el nivel más pesado.
      Las teselas empiezan en z12 (`generar_pmtiles.py`), justo antes de Z0. */
-const Z0 = 11.4, ZC = 11.7, Z1 = 12.1;
+const Z0 = 11.0, ZC = 11.25, Z1 = 11.6;
 /* ★ LA BANDA ES ANGOSTA (0,7) A PROPÓSITO. La primera versión cruzaba en 1,2 y
    dejaba una zona muerta alrededor de z12,5: el relleno municipal ya estaba
    lavado y el de manzana todavía no pesaba, así que durante medio nivel de
@@ -421,8 +421,12 @@ const Z0 = 11.4, ZC = 11.7, Z1 = 12.1;
    estaba al principio— la ciudad recién entraba justa, y EN MÓVIL (390 px) se
    veían 8,7 km: un tercio. Se bajó en dos pasos hasta acá, para que al cambiar
    de nivel se vea la CONURBACIÓN y no una porción de la capital.
-   ⚠️ Éste es el piso: `generar_pmtiles.py` arranca en z11 y MapLibre pide
-   `floor(zoom)`, así que por debajo de 11,0 no habría tesela que pedir.
+   ⚠️ **11,0 ES EL PISO Y YA ESTAMOS EN ÉL**: `generar_pmtiles.py` arranca en
+   z11 y MapLibre pide `floor(zoom)`, así que por debajo no hay tesela que
+   pedir. Bajar más obliga a teselar z10, donde una manzana mide 0,7 px —
+   sub-píxel, deja de ser un polígono— y cada tesela llevaría ~50.000 manzanas.
+   ★ Lo que hizo que el cruce se SINTIERA lejos no era este número: era que el
+   mapa arrancaba encuadrando los 267 km de la región. Ver `FUERA_DEL_ENCUADRE`.
    ⚠️ Y a z11,4 la manzana mide 1,8 px: ahí las manzanas RECIÉN ASOMAN, con la
    opacidad casi en cero. Llegan a opacidad plena en 12,1, con 2,9 px. Que el
    nivel exista no significa que se deba mirar fijo la región entera cubierta
@@ -781,7 +785,7 @@ try {
   map = new maplibregl.Map({
     container: "map",
     style: estiloBase(esOscuro()),
-    center: [-63.05, -17.72], zoom: 9.2, attributionControl: {compact: true},
+center: [-63.05, -17.72], zoom: 9.2, attributionControl: {compact: true},
     maxZoom: 18, minZoom: 7
   });
   const ctrl = document.querySelector(".maplibregl-ctrl-top-right");
@@ -853,6 +857,16 @@ function bboxDe(coords){
 }
 
 let BBOX = null;
+/* ⚠️ SE PROBÓ ENCUADRAR SÓLO LA CONURBACIÓN (dejando Pailón fuera del cuadro)
+   y SE REVIRTIÓ, por dos razones medidas:
+   1. No servía. La conurbación mide 94 km de ancho pero **138 km de alto**, y
+      con los dos paneles el alto útil son ~390 px: `cameraForBounds` devolvía
+      z 7,7 — MÁS LEJOS que el encuadre de los nueve. Excluir Pailón acorta el
+      ancho y no toca el alto, que es el que manda.
+   2. No era lo pedido. Lo que hace falta es ver las manzanas SIN acercarse
+      tanto, y eso lo resuelve bajar la banda del cruce, no acercar la apertura.
+   ⚠️ Al medir un encuadre hay que mirar las DOS dimensiones: yo medí sólo el
+   ancho y la conclusión se dio vuelta al mirar el alto. */
 function encuadrar(){ if (BBOX && map) map.fitBounds(BBOX, {padding: {top: 80, bottom: 150, left: 40, right: 40}, duration: 700}); }
 
 /* TOOLTIP. Es un div propio y no el `Popup` de MapLibre: el Popup impone su
