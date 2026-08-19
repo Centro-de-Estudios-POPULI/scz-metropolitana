@@ -360,6 +360,27 @@ const rampa = dir => {
   return dir === 1 ? r.slice().reverse() : r.slice();
 };
 
+const UMBRAL_ZOOM = 11.4;     // a partir de acá el nivel manzana tiene sentido visual
+
+/* Un gris único para los dos temas, declarado por la Gobernación. Lo que tiene
+   que hacer el "sin dato" es no parecerse a ningún tono de la rampa, y éste no
+   se parece en ninguno de los dos fondos. Acá es sobre todo el gris de las
+   13.194 manzanas que el INE suprime por privacidad, que se dibujan a
+   propósito: borrarlas dejaría agujeros que se leen como "no vive nadie". */
+const SIN_DATO = {claro:"#8a8f96", oscuro:"#8a8f96"};
+
+/* OPACIDADES. Bajas a propósito: el coroplético va ENCIMA de un mapa real, y si
+   lo tapa deja de servir de referencia justo cuando más se la necesita —al
+   acercarse a la manzana—. Con el relleno translúcido se leen las dos cosas: el
+   valor por el tono y el lugar por la calle de abajo.
+   ★ MÁS BAJAS EN OSCURO: la rampa tiene #8bc53f —un verde muy luminoso— en un
+   extremo, y cuando la mayoría de los valores cae de ese lado (pasa con
+   `pct_agua_pozo`, mediana 0,0%) el mapa entero se vuelve un bloque de verde
+   neón sobre el fondo oscuro y deja de leerse la ciudad debajo. */
+const OPACIDAD_CLARO  = {mun: .55, mz: .62};
+const OPACIDAD_OSCURO = {mun: .42, mz: .46};
+const opacidades = () => esOscuro() ? OPACIDAD_OSCURO : OPACIDAD_CLARO;
+
 const SENAL = "#8bc53f";
 
 /* FUNDIDO POR ZOOM. En vez de que el nivel cambie de golpe con el botón, las dos
