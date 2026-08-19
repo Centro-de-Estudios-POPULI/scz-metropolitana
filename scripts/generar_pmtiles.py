@@ -47,7 +47,14 @@ SALIDA = DATOS / "manzanas.pmtiles"
 # ya estén disponibles cuando el fundido empieza a mostrarlas. Por encima de
 # ZMAX, MapLibre sobre-escala la última tesela: no hace falta teselar más.
 #
-# ★ ZMIN BAJÓ DE 12 A 11 (pedido de Carlos: quería el cruce a menor zoom).
+# ★ ZMIN BAJÓ 12 -> 11 -> 10, en tres pedidos de Carlos, cada uno para que la
+#   transformación ocurra estando MÁS LEJOS. z10 es el fondo razonable: a ese
+#   nivel una manzana de 100 m mide 0,7 px —sub-píxel— así que deja de leerse
+#   como polígono y pasa a leerse como MANCHA. Medido antes de aplicarlo:
+#   17 teselas · +4,0 MB al archivo · vista de 6 teselas 1,4 MB · la tesela más
+#   pesada 2.886 KB con 27.902 manzanas. Es viable; el costo es de lectura, no
+#   de peso.
+#   (nota original de cuando bajó a 11:)
 #   La objeción original era que a z11 una tesela se lleva 8.707 manzanas de un
 #   píxel —la mancha que el proyecto decidió no mostrar— y que es el nivel más
 #   pesado (los atributos son el 79-81% de cada tesela).
@@ -59,7 +66,7 @@ SALIDA = DATOS / "manzanas.pmtiles"
 #   manzanas recién asoman y sólo llegan a opacidad plena en z12,1, donde ya
 #   miden 2,9 px. El nivel existe para que el cruce pueda empezar antes, no
 #   para mirar fijo la región entera cubierta de manzanas.
-ZMIN, ZMAX = 11, 14
+ZMIN, ZMAX = 10, 14
 EXTENT = 4096
 BUFFER = 64          # en unidades de tesela: cose los bordes entre teselas vecinas
 CAPA = "manzanas"

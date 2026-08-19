@@ -401,7 +401,7 @@ const SENAL = "#8bc53f";
      z11 una sola tesela se lleva 8.707 manzanas de un píxel. Eso es la mancha
      que este proyecto decidió no mostrar, y encima es el nivel más pesado.
      Las teselas empiezan en z12 (`generar_pmtiles.py`), justo antes de Z0. */
-const Z0 = 11.0, ZC = 11.25, Z1 = 11.6;
+const Z0 = 10.0, ZC = 10.4, Z1 = 10.9;
 /* ★ LA BANDA ES ANGOSTA (0,7) A PROPÓSITO. La primera versión cruzaba en 1,2 y
    dejaba una zona muerta alrededor de z12,5: el relleno municipal ya estaba
    lavado y el de manzana todavía no pesaba, así que durante medio nivel de
@@ -421,17 +421,39 @@ const Z0 = 11.0, ZC = 11.25, Z1 = 11.6;
    estaba al principio— la ciudad recién entraba justa, y EN MÓVIL (390 px) se
    veían 8,7 km: un tercio. Se bajó en dos pasos hasta acá, para que al cambiar
    de nivel se vea la CONURBACIÓN y no una porción de la capital.
-   ⚠️ **11,0 ES EL PISO Y YA ESTAMOS EN ÉL**: `generar_pmtiles.py` arranca en
-   z11 y MapLibre pide `floor(zoom)`, así que por debajo no hay tesela que
-   pedir. Bajar más obliga a teselar z10, donde una manzana mide 0,7 px —
-   sub-píxel, deja de ser un polígono— y cada tesela llevaría ~50.000 manzanas.
-   ★ Lo que hizo que el cruce se SINTIERA lejos no era este número: era que el
-   mapa arrancaba encuadrando los 267 km de la región. Ver `FUERA_DEL_ENCUADRE`.
+   ⚠️ **10,0 ES EL PISO Y YA ESTAMOS EN ÉL**: `generar_pmtiles.py` arranca en
+   z10 y MapLibre pide `floor(zoom)`, así que por debajo no hay tesela que
+   pedir. Y a z10 una manzana de 100 m mide **0,7 px**: es sub-píxel, o sea que
+   ya no se lee como polígono sino como MANCHA. Eso es deliberado —es lo que
+   se pidió— pero marca el fondo: por debajo no habría nada que mirar.
    ⚠️ Y a z11,4 la manzana mide 1,8 px: ahí las manzanas RECIÉN ASOMAN, con la
    opacidad casi en cero. Llegan a opacidad plena en 12,1, con 2,9 px. Que el
    nivel exista no significa que se deba mirar fijo la región entera cubierta
    de manzanas — eso lo evita el fundido, no el teselado. */
 const fundido = (a, b) => ["interpolate", ["linear"], ["zoom"], Z0, a, Z1, b];
+
+/* ★ EL RELLENO MUNICIPAL SE VA MÁS RÁPIDO QUE LINEAL (pedido de Carlos).
+   Con una recta, a mitad de la banda el municipio todavía conserva la mitad de
+   su tinta y le compite el color a las manzanas que están apareciendo justo
+   ahí: se ven las dos capas mezcladas y no se lee bien ninguna. Con la caída
+   adelantada, al 30% del cruce ya está en el 28% de su opacidad, así que el
+   nivel de abajo queda con el color para él solo casi enseguida.
+   El BORDE municipal no cambia: ese es el que sostiene la referencia de en qué
+   municipio estás, y se va mucho más arriba. */
+const fundidoMun = a => ["interpolate", ["linear"], ["zoom"],
+  Z0, a,
+  Z0 + (Z1 - Z0) * .3, a * .28,
+  Z1, 0];
+
+/* Y las manzanas suben un poco ANTES de lo lineal, para que el hueco que deja
+   el municipal no quede lavado: al 40% del cruce ya están al 70% de su tinta.
+   Es el mismo problema que hizo angostar la banda la primera vez —una zona
+   donde no se lee bien ninguna de las dos capas—, resuelto ahora por la forma
+   de las curvas en vez de por el ancho. */
+const fundidoMz = b => ["interpolate", ["linear"], ["zoom"],
+  Z0, 0,
+  Z0 + (Z1 - Z0) * .4, b * .7,
+  Z1, b];
 
 let CAT, MUN, FIS, cat_actual, ind_actual, nivel = "municipio", anio_i = 9;
 /* ── EL CENSO EN PANTALLA ─────────────────────────────────────────────────────
@@ -500,9 +522,9 @@ function aplicarTema(oscuro, guardar){
        solas de que el fondo cambió. */
     if (map.getLayer("mun-fill"))
       map.setPaintProperty("mun-fill", "fill-opacity",
-        hayManzana() ? fundido(opacidades().mun, 0) : opacidades().mun);
+        hayManzana() ? fundidoMun(opacidades().mun) : opacidades().mun);
     if (map.getLayer("mz-fill"))
-      map.setPaintProperty("mz-fill", "fill-opacity", fundido(0, opacidades().mz));
+      map.setPaintProperty("mz-fill", "fill-opacity", fundidoMz(opacidades().mz));
   }
   if (map) pintar();
   if (typeof CAT !== "undefined" && CAT && cat_actual) montarIndicadores();
@@ -960,7 +982,7 @@ Promise.all([
     // dato que le falta al lector para ubicarse.
     nuevaCapa({id: "mun-fill", type: "fill", source: "mun",
       paint: {"fill-color": SIN_DATO.claro,
-              "fill-opacity": hayManzana() ? fundido(opacidades().mun, 0) : opacidades().mun}});
+              "fill-opacity": hayManzana() ? fundidoMun(opacidades().mun) : opacidades().mun}});
     /* ★ EL BORDE MUNICIPAL SOBREVIVE AL RELLENO. Cuando el coroplético
        municipal se apaga, el contorno se queda a media tinta hasta bastante
        más arriba: es lo que evita que al bajar a manzana se pierda la
@@ -984,11 +1006,11 @@ Promise.all([
        cambiar la expresión de color. Ver `scripts/generar_pmtiles.py`. */
     if (hayManzana()){
       nuevaFuente("mz", {type: "vector", url: "pmtiles://" + urlPM(),
-                         minzoom: 11, maxzoom: 14});
+                         minzoom: 10, maxzoom: 14});
       nuevaCapa({id: "mz-fill", type: "fill", source: "mz", "source-layer": "manzanas",
         minzoom: Z0,
         paint: {"fill-color": SIN_DATO.claro,
-                "fill-opacity": fundido(0, opacidades().mz)}});
+                "fill-opacity": fundidoMz(opacidades().mz)}});
       nuevaCapa({id: "mz-line", type: "line", source: "mz", "source-layer": "manzanas",
         minzoom: Z0,
         paint: {"line-color": esOscuro() ? "#12181c" : "#ffffff",
