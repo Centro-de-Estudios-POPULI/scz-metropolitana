@@ -27,6 +27,9 @@ import json, pathlib, sys
 import pandas as pd
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+# Columnas que NO salen de la ficha del geoportal sino de `poblacion.parquet` y
+# de la geometría: existen para todos los manzanos, tengan ficha o no.
+SIN_FICHA = {"pob_total", "viviendas", "tam_hogar", "densidad"}
 SALIDA = RAIZ / "web" / "datos"
 MOTOR = RAIZ / "catalogo" / "manzana_2024.csv"
 sys.path.insert(0, str(RAIZ / "catalogo"))
@@ -47,8 +50,15 @@ def main():
     # `verificados` = los que además REPRODUCEN la cifra urbana del microdato.
     # Quedan fuera los que sólo comparten el nombre: el bloque de salud, donde el
     # municipal divide por toda la población y admite respuesta múltiple.
-    quedan = [k for k in inds if k in set(comp["verificados"])]
-    print(f"de ésos, verificados contra el nivel municipio: {len(quedan)}")
+    # ★ ENTRAN LOS VERIFICADOS **Y** LOS SÓLO-MANZANA. Estos últimos no tienen
+    #   contraparte municipal contra la cual verificarse —la ficha separa cosas
+    #   que el microdato no— pero son la mitad del valor de este nivel, y el
+    #   catálogo los rotula para que se lea que al subir de nivel no están.
+    admitidos = set(comp["verificados"]) | set(comp.get("solo_manzana", []))
+    quedan = [k for k in inds if k in admitidos]
+    print(f"de ésos, admitidos en el tablero: {len(quedan)} "
+          f"({len(set(comp['verificados']) & set(inds))} verificados + "
+          f"{len(set(comp.get('solo_manzana', [])) & set(inds))} sólo manzana)")
 
     tot_antes = tot_desp = 0
     for p in sorted(SALIDA.glob("dat_*.json")):
@@ -65,10 +75,17 @@ def main():
             s = sub[k]
             cols[k] = [None if pd.isna(v) else (int(v) if float(v) == int(v) else round(float(v), 1))
                        for v in s]
-        con = int(sub[quedan].notna().any(axis=1).sum())
+        # ⚠️ `ficha` NO puede medirse sobre TODAS las columnas desde que entraron
+        #    población y densidad: ésas vienen de `poblacion.parquet` y existen
+        #    para los 247.429 manzanos, incluidos los 13.194 de la región que el
+        #    INE suprime por privacidad. Medido sobre todo, las 38.892 darían
+        #    "con ficha" y se perdería la distinción que el mapa usa para pintar
+        #    en gris — y con ella el 34% de las manzanas dejaría de estar
+        #    explicado. Se mide sobre las columnas que SALEN de la ficha.
+        de_ficha = [k for k in quedan if k not in SIN_FICHA]
+        con = int(sub[de_ficha].notna().any(axis=1).sum())
         d["cols"] = cols
-        # `ficha` se recalcula del propio dato: es "esta manzana tiene ficha del INE"
-        d["ficha"] = [bool(x) for x in sub[quedan].notna().any(axis=1)]
+        d["ficha"] = [bool(x) for x in sub[de_ficha].notna().any(axis=1)]
         p.write_text(json.dumps(d, ensure_ascii=False, separators=(",", ":")),
                      encoding="utf-8")
         desp = p.stat().st_size

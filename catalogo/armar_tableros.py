@@ -288,8 +288,23 @@ def catalogo(claves, decl, nivel, glosario, avisos=None, err=None):
         it = {"key": k, "label": i["l"], "unit": i["u"], "dir": i.get("d", 0),
               "desc": describir(i, glosario), "fuente": "censo",
               "nivel": nivel, "k_mun": k,
-              "k_mz": k if nivel == "ambos" else None,
+              "k_mz": k if nivel in ("ambos", "solo_mz") else None,
               "continuo": nivel == "ambos"}
+        # ★ SÓLO MANZANA. La ficha del geoportal separa cosas que el microdato
+        #   municipal no separa —vertiente protegida, hacinamiento medio, el
+        #   detalle de pisos—, así que estos indicadores existen abajo y no
+        #   arriba. Entran igual, porque son la mitad del valor del nivel
+        #   manzana, pero SE ROTULAN: al subir de nivel el mapa no muestra la
+        #   cifra municipal del censo (no hay), sino el agregado de las manzanas
+        #   urbanas de ese municipio. Callarlo sería publicar una cifra urbana
+        #   bajo el nombre de una municipal, que es exactamente el sesgo de
+        #   universo que este proyecto ya documentó.
+        if nivel == "solo_mz":
+            it["solo_mz"] = True
+            it["aviso"] = ("Sólo existe a nivel manzana: el microdato municipal "
+                           "no lo separa igual. Al ver los nueve municipios se "
+                           "muestra la suma de sus manzanas urbanas, que no "
+                           "cubre el área rural.")
         if avisos and k in avisos:
             it["aviso"] = (f"La suma de las manzanas y la cifra urbana del municipio "
                            f"difieren {err.get(k, 0):.1f} pp en promedio: varía fuerte "
@@ -426,11 +441,38 @@ def main():
         fichas_a, ensure_ascii=False), encoding="utf-8")
 
     # ── TABLERO B — municipio ↔ manzana ──────────────────────────────────────
-    ks_b = sorted(set(comp["verificados"]) & set(decl) & set(v24.columns))
+    ks_b0 = sorted(set(comp["verificados"]) & set(decl) & set(v24.columns))
+    ks_b = ks_b0
+
+    # ★ LOS SÓLO-MANZANA NECESITAN UNA CIFRA MUNICIPAL PARA EL PANEL. El
+    #   comparativo entre los nueve y la tira de distribución se dibujan con
+    #   `k_mun`; sin ningún valor ahí, el panel derecho queda mudo justo en los
+    #   indicadores nuevos. La cifra es el AGREGADO DE SUS MANZANAS, que
+    #   `motor_manzana.py` ya calcula y guarda, y va rotulada como tal.
+    agr = pd.read_csv(AQUI / "manzana_agregado_municipal.csv", dtype={0: str})
+    agr = agr.rename(columns={agr.columns[0]: "cod_ine"}).set_index("cod_ine")
+    agr.index = agr.index.astype(str).str.zfill(6)
+    agr.columns = [ALIAS.get(c, c) for c in agr.columns]
+    ks_mz = sorted(set(comp.get("solo_manzana", [])) & set(decl) & set(agr.columns))
+    for k in ks_mz:
+        if k not in v24.columns:
+            v24[k] = agr[k].reindex(v24.index)
+    print(f"TABLERO B · sólo manzana: {len(ks_mz)} indicadores "
+          f"(cifra municipal = agregado de sus manzanas)")
     avisos, err = set(comp.get("con_aviso", [])), comp.get("error_pp", {})
     print(f"TABLERO B · comparables: {len(ks_b)} indicadores "
           f"({len(avisos)} con aviso · {len(comp.get('excluidos', []))} excluidos por definición)")
     grupos_b = catalogo(ks_b, decl, "ambos", glosario, avisos, err)
+    # los sólo-manzana se funden en los mismos grupos temáticos, no en uno aparte:
+    # lo que los distingue es la etiqueta de la tarjeta, no dónde viven
+    for g_extra in catalogo(ks_mz, decl, "solo_mz", glosario):
+        hit = next((g for g in grupos_b if g["key"] == g_extra["key"]), None)
+        if hit:
+            hit["indicadores"] = sorted(hit["indicadores"] + g_extra["indicadores"],
+                                        key=lambda x: x["label"])
+        else:
+            grupos_b.append(g_extra)
+    grupos_b.sort(key=lambda g: g["label"])
     # el nivel manzana no tiene serie intercensal (las fichas por manzano son sólo
     # de 2024), así que acá no va `s12` ni dominio declarado: lo único que hace
     # falta es que un conteo se sepa conteo, para que la escala lo centre en su
@@ -451,7 +493,13 @@ def main():
                    "urbano": region(vur, dur, ks_b, cods)},
     }, ensure_ascii=False), encoding="utf-8")
     (SALIDA / "municipios_manzana.json").write_text(json.dumps(
-        [ficha(m, ks_b, True, False) for m in muns], ensure_ascii=False), encoding="utf-8")
+        # ⚠️ ks_b + ks_mz: sin las claves sólo-manzana, la ficha municipal no las
+        #    trae y el comparativo entre los nueve queda en "Sin datos para este
+        #    indicador" justo en densidad y en los otros 16 — que son los que se
+        #    acaban de agregar. La tira de abajo sí los dibujaba (sale de
+        #    `mz_stats.json`), así que el panel se contradecía consigo mismo.
+        [ficha(m, sorted(set(ks_b) | set(ks_mz)), True, False) for m in muns],
+        ensure_ascii=False), encoding="utf-8")
 
     for n in ("catalogo_municipal", "municipios_municipal",
               "catalogo_manzana", "municipios_manzana"):

@@ -153,15 +153,15 @@ G = "Hogares y jefatura"
 A(I("tam_hogar", "Personas por hogar", "pers", -1, G, n="mun+mz", uni="hogares",
     e24="media(tot_pers)", e12="media(TOTPERS_VIV)", val="vivienda_hogar/22",
     nota="⚠️ El Atlas lo dividía por TODAS las viviendas pese a llamarse 'por vivienda ocupada'."))
-A(I("pct_hogar_unipersonal", "Hogares unipersonales", "%", 0, G, uni="hogares",
+A(I("pct_hogar_unipersonal", "Hogares unipersonales", "%", 0, G, n="mun+mz", uni="hogares",
     e24="tip_hog == 1", e12="TOTPERS_VIV == 1", val="vivienda_hogar/19"))
-A(I("pct_hogar_nuclear", "Hogares nucleares", "%", 0, G, uni="hogares",
+A(I("pct_hogar_nuclear", "Hogares nucleares", "%", 0, G, n="mun+mz", uni="hogares",
     e24="tip_hog in {2,4}", e12="derivar de P23", val="vivienda_hogar/19"))
-A(I("pct_hogar_monoparental", "Hogares monoparentales", "%", 0, G, uni="hogares",
+A(I("pct_hogar_monoparental", "Hogares monoparentales", "%", 0, G, n="mun+mz", uni="hogares",
     e24="tip_hog == 3", e12="derivar de P23", val="vivienda_hogar/19"))
-A(I("pct_hogar_extendido", "Hogares extendidos", "%", 0, G, uni="hogares",
+A(I("pct_hogar_extendido", "Hogares extendidos", "%", 0, G, n="mun+mz", uni="hogares",
     e24="tip_hog == 5", e12="derivar de P23", val="vivienda_hogar/19"))
-A(I("pct_hogar_compuesto", "Hogares compuestos", "%", 0, G, uni="hogares",
+A(I("pct_hogar_compuesto", "Hogares compuestos", "%", 0, G, n="mun+mz", uni="hogares",
     e24="tip_hog == 6", e12="derivar de P23", val="vivienda_hogar/19"))
 A(I("pct_jefatura_femenina", "Jefatura femenina", "%", 0, G, uni="hogares",
     e24="jefe(p24_parentes==1) and p25_sexo==2", e12="jefe(P23==1) and P24==2",
@@ -185,21 +185,21 @@ A(I("pct_agua_lote", "Agua por cañería fuera pero en el lote", "%", 0, G,
     e24="v08_aguadist == 2", e12="P08 == 2", val="servicios_basicos/6"))
 A(I("pct_agua_sin_caneria", "Sin distribución por cañería", "%", -1, G,
     e24="v08_aguadist == 3", e12="P08 == 3", val="servicios_basicos/6"))
-A(I("pct_agua_pileta", "Pileta pública", "%", -1, G,
+A(I("pct_agua_pileta", "Pileta pública", "%", -1, G, n="mun+mz",
     e24="v07_aguapro == 2", e12="P07 == 2", val="servicios_basicos/5"))
 A(I("pct_agua_pozo", "Agua de pozo", "%", 0, G, n="mun+mz",
     e24="v07_aguapro in {4,5}", e12="P07 in {4,5}", val="servicios_basicos/5"))
-A(I("pct_agua_pozo_bomba", "Pozo con bomba", "%", 0, G,
+A(I("pct_agua_pozo_bomba", "Pozo con bomba", "%", 0, G, n="mun+mz",
     e24="v07_aguapro == 4", e12="P07 == 4", val="servicios_basicos/5"))
 A(I("pct_agua_rio", "Río, acequia o vertiente no protegida", "%", -1, G,
     e24="v07_aguapro == 7", e12="P07 == 7", val="servicios_basicos/5"))
-A(I("pct_agua_carro", "Carro repartidor (aguatero)", "%", -1, G,
+A(I("pct_agua_carro", "Carro repartidor (aguatero)", "%", -1, G, n="mun+mz",
     e24="v07_aguapro == 8", e12="P07 == 8", val="servicios_basicos/5"))
-A(I("pct_agua_lluvia", "Cosecha de agua de lluvia", "%", 0, G,
+A(I("pct_agua_lluvia", "Cosecha de agua de lluvia", "%", 0, G, n="mun+mz",
     e24="v07_aguapro == 3", e12="P07 == 3", val="servicios_basicos/5"))
 A(I("pct_agua_no_mejorada", "Fuente no mejorada", "%", -1, G,
     e24="v07_aguapro in {5,7,8}", e12="P07 in {5,7,8}", val="servicios_basicos/7"))
-A(I("pct_agua_mejorada", "Acceso a fuente mejorada", "%", 1, G,
+A(I("pct_agua_mejorada", "Acceso a fuente mejorada", "%", 1, G, n="mun+mz",
     e24="complemento de no mejorada", e12="idem", val="servicios_basicos/7",
     nota="El INE lo publica sobre POBLACIÓN, no sobre viviendas: validar contra esa hoja."))
 
@@ -220,7 +220,7 @@ A(I("pct_camara_septica", "Desagüe a cámara séptica", "%", 0, G, n="mun+mz",
     e24="v16_desague == 2", e12="P10 == 2", val="servicios_basicos/10"))
 A(I("pct_pozo_ciego", "Desagüe a pozo ciego", "%", -1, G, n="mun+mz",
     e24="v16_desague == 3", e12="P10 == 3", val="servicios_basicos/10"))
-A(I("pct_desague_superficie", "Desagüe a la superficie", "%", -1, G,
+A(I("pct_desague_superficie", "Desagüe a la superficie", "%", -1, G, n="mun+mz",
     e24="v16_desague == 5", e12="P10 == 5", val="servicios_basicos/10"))
 A(I("pct_sin_desague", "Sin desagüe", "%", -1, G, n="mun+mz",
     e24="v15_servsan == 3", e12="P09 == 3", val="servicios_basicos/8"))
@@ -233,13 +233,13 @@ G = "Energía y cocina"
 # ═══════════════════════════════════════════════════════════════════════════
 A(I("pct_electricidad", "Con energía eléctrica", "%", 1, G, n="mun+mz",
     e24="v09_energia in {1,2,3,4}", e12="P11 != 'no tiene'", val="servicios_basicos/1"))
-A(I("pct_elec_red", "Energía de la red pública", "%", 1, G,
+A(I("pct_elec_red", "Energía de la red pública", "%", 1, G, n="mun+mz",
     e24="v09_energia == 1", e12="P11 == 1", val="servicios_basicos/3"))
-A(I("pct_panel_solar", "Energía por panel solar", "%", 0, G,
+A(I("pct_panel_solar", "Energía por panel solar", "%", 0, G, n="mun+mz",
     e24="v09_energia == 3", e12="P11 == 3", val="servicios_basicos/3"))
 A(I("pct_motor_propio", "Motor propio o generador", "%", 0, G,
     e24="v09_energia == 2", e12="P11 == 2", val="servicios_basicos/3"))
-A(I("pct_sin_energia", "Sin energía eléctrica", "%", -1, G,
+A(I("pct_sin_energia", "Sin energía eléctrica", "%", -1, G, n="mun+mz",
     e24="v09_energia == 5", e12="P11 == 'no tiene'", val="servicios_basicos/1"))
 A(I("pct_gas_red", "Gas por cañería a domicilio", "%", 1, G, n="mun+mz",
     e24="v10_combus == 2", e12="P12 gas por cañería", val="servicios_basicos/12"))
@@ -252,7 +252,7 @@ A(I("pct_combustible_limpio", "Combustible limpio para cocinar", "%", 1, G,
     nota="Definición ODS 7.1.2."))
 A(I("pct_cocina_exclusiva", "Cuarto sólo para cocinar", "%", 1, G,
     e24="v12_cocina == 1", e12="P13 == 1", val="vivienda_hogar/16"))
-A(I("pct_no_cocina", "No cocina en la vivienda", "%", 0, G,
+A(I("pct_no_cocina", "No cocina en la vivienda", "%", 0, G, n="mun+mz",
     e24="v10_combus == 8", e12="P12 no cocina", val="servicios_basicos/12"))
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -260,13 +260,13 @@ G = "Residuos"
 # ═══════════════════════════════════════════════════════════════════════════
 A(I("pct_basura_formal", "Recojo formal de basura", "%", 1, G, n="mun+mz",
     e24="v11_basura in {1,2}", e12="P16 contenedor/carro", val="servicios_basicos/13"))
-A(I("pct_basura_carro", "Entrega al carro basurero", "%", 1, G,
+A(I("pct_basura_carro", "Entrega al carro basurero", "%", 1, G, n="mun+mz",
     e24="v11_basura == 2", e12="P16 carro", val="servicios_basicos/13"))
 A(I("pct_basura_contenedor", "Deposita en contenedor público", "%", 1, G,
     e24="v11_basura == 1", e12="P16 contenedor", val="servicios_basicos/13"))
 A(I("pct_basura_quema", "Quema la basura", "%", -1, G, n="mun+mz",
     e24="v11_basura == 5", e12="P16 quema", val="servicios_basicos/13"))
-A(I("pct_basura_entierra", "Entierra la basura", "%", -1, G,
+A(I("pct_basura_entierra", "Entierra la basura", "%", -1, G, n="mun+mz",
     e24="v11_basura == 6", e12="P16 entierra", val="servicios_basicos/13"))
 A(I("pct_basura_informal", "Basura a terreno baldío, calle o río", "%", -1, G, n="mun+mz",
     e24="v11_basura in {3,4}", e12="P16 calle/río", val="servicios_basicos/13"))
@@ -274,33 +274,33 @@ A(I("pct_basura_informal", "Basura a terreno baldío, calle o río", "%", -1, G,
 # ═══════════════════════════════════════════════════════════════════════════
 G = "Vivienda y materiales"
 # ═══════════════════════════════════════════════════════════════════════════
-A(I("pct_pared_ladrillo", "Paredes de ladrillo o bloque", "%", 1, G,
+A(I("pct_pared_ladrillo", "Paredes de ladrillo o bloque", "%", 1, G, n="mun+mz",
     e24="v03_pared == 1", e12="P03 ladrillo", val="vivienda_hogar/8"))
-A(I("pct_pared_adobe", "Paredes de adobe o tapial", "%", -1, G,
+A(I("pct_pared_adobe", "Paredes de adobe o tapial", "%", -1, G, n="mun+mz",
     e24="v03_pared == 2", e12="P03 adobe", val="vivienda_hogar/8"))
-A(I("pct_pared_madera", "Paredes de madera", "%", 0, G,
+A(I("pct_pared_madera", "Paredes de madera", "%", 0, G, n="mun+mz",
     e24="v03_pared == 5", e12="P03 madera", val="vivienda_hogar/8"))
 A(I("pct_pared_precaria", "Paredes precarias (caña, palma, tronco)", "%", -1, G,
     e24="v03_pared == 6", e12="P03 caña/palma", val="vivienda_hogar/8"))
-A(I("pct_revoque", "Paredes con revoque", "%", 1, G,
+A(I("pct_revoque", "Paredes con revoque", "%", 1, G, n="mun+mz",
     e24="v04_revoq == 1", e12="P04 == 1", val="vivienda_hogar/8"))
-A(I("pct_techo_calamina", "Techo de calamina", "%", 0, G,
+A(I("pct_techo_calamina", "Techo de calamina", "%", 0, G, n="mun+mz",
     e24="v05_techo == 1", e12="P05 calamina", val="vivienda_hogar/9"))
-A(I("pct_techo_teja", "Techo de teja", "%", 1, G,
+A(I("pct_techo_teja", "Techo de teja", "%", 1, G, n="mun+mz",
     e24="v05_techo == 2", e12="P05 teja", val="vivienda_hogar/9"))
-A(I("pct_techo_losa", "Techo de losa de hormigón", "%", 1, G,
+A(I("pct_techo_losa", "Techo de losa de hormigón", "%", 1, G, n="mun+mz",
     e24="v05_techo == 3", e12="P05 losa", val="vivienda_hogar/9"))
-A(I("pct_techo_paja", "Techo de paja o palma", "%", -1, G,
+A(I("pct_techo_paja", "Techo de paja o palma", "%", -1, G, n="mun+mz",
     e24="v05_techo == 4", e12="P05 paja", val="vivienda_hogar/9"))
-A(I("pct_piso_tierra", "Piso de tierra", "%", -1, G,
+A(I("pct_piso_tierra", "Piso de tierra", "%", -1, G, n="mun+mz",
     e24="v06_piso == 1", e12="P06 tierra", val="vivienda_hogar/10"))
-A(I("pct_piso_cemento", "Piso de cemento", "%", 0, G,
+A(I("pct_piso_cemento", "Piso de cemento", "%", 0, G, n="mun+mz",
     e24="v06_piso == 5", e12="P06 cemento", val="vivienda_hogar/10"))
-A(I("pct_piso_ceramica", "Piso de cerámica o porcelanato", "%", 1, G,
+A(I("pct_piso_ceramica", "Piso de cerámica o porcelanato", "%", 1, G, n="mun+mz",
     e24="v06_piso in {4,6}", e12="P06 cerámica/mosaico", val="vivienda_hogar/10"))
 A(I("pct_monoambiente", "Viviendas de un solo cuarto", "%", -1, G,
     e24="v13_habitac == 1", e12="P14 == 1", val="vivienda_hogar/11"))
-A(I("pct_hacinamiento", "Hacinamiento (>3 personas por dormitorio)", "%", -1, G,
+A(I("pct_hacinamiento", "Hacinamiento (>3 personas por dormitorio)", "%", -1, G, n="mun+mz",
     e24="tot_pers / v14_dormit > 3", e12="TOTPERS_VIV / P15 > 3", val="vivienda_hogar/14",
     nota="⚠️ Verificar el umbral exacto del INE antes de publicar: el nuestro no reproduce el tabulado."))
 A(I("pers_x_dormitorio", "Personas por dormitorio", "pers", -1, G,
@@ -335,7 +335,7 @@ A(I("pct_viv_alquilada", "Vivienda en alquiler", "%", 0, G, n="mun+mz",
     e24="v17_tenencia == 4", e12="P19 alquilada", val="vivienda_hogar/17"))
 A(I("pct_viv_anticretico", "Vivienda en anticrético", "%", 0, G, n="mun+mz",
     e24="v17_tenencia in {5,6}", e12="P19 anticrético", val="vivienda_hogar/17"))
-A(I("pct_viv_prestada", "Vivienda prestada o cedida", "%", 0, G,
+A(I("pct_viv_prestada", "Vivienda prestada o cedida", "%", 0, G, n="mun+mz",
     e24="v17_tenencia in {3,7}", e12="P19 prestada/cedida", val="vivienda_hogar/17"))
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -343,14 +343,14 @@ G = "Educación"
 # ═══════════════════════════════════════════════════════════════════════════
 A(I("pct_analfabetismo", "Analfabetismo (15+)", "%", -1, G, s=True, uni="p15mas",
     e24="p40_lee == 2", e12="P35 == 2", val="educacion/1"))
-A(I("pct_sin_educacion", "Sin nivel educativo (19+)", "%", -1, G, s=True, uni="p19mas",
+A(I("pct_sin_educacion", "Sin nivel educativo (19+)", "%", -1, G, n="mun+mz", s=True, uni="p19mas",
     e24="nivel_edu == 1", e12="P37A ninguno", val="educacion/3",
     nota="★ El universo es 19+, no 15+: así lo define el INE. El extractor viejo usaba 15+."))
-A(I("pct_edu_primaria", "Sólo primaria (19+)", "%", 0, G, s=True, uni="p19mas",
+A(I("pct_edu_primaria", "Sólo primaria (19+)", "%", 0, G, n="mun+mz", s=True, uni="p19mas",
     e24="nivel_edu == 2", e12="P37A primaria", val="educacion/3"))
-A(I("pct_edu_secundaria", "Secundaria (19+)", "%", 0, G, s=True, uni="p19mas",
+A(I("pct_edu_secundaria", "Secundaria (19+)", "%", 0, G, n="mun+mz", s=True, uni="p19mas",
     e24="nivel_edu == 3", e12="P37A secundaria", val="educacion/3"))
-A(I("pct_edu_superior", "Educación superior (19+)", "%", 1, G, s=True, uni="p19mas",
+A(I("pct_edu_superior", "Educación superior (19+)", "%", 1, G, n="mun+mz", s=True, uni="p19mas",
     e24="nivel_edu == 4", e12="P37A superior", val="educacion/3"))
 A(I("prom_anios_estudio", "Años promedio de estudio (19+)", "años", 1, G, s=True, uni="p19mas",
     e24="media(aestudio)", e12="derivar de P37A/P37B", val="educacion/4"))
@@ -382,11 +382,11 @@ A(I("brecha_anios_estudio", "Brecha de género en años de estudio", "años", 0,
 # ═══════════════════════════════════════════════════════════════════════════
 G = "Salud"
 # ═══════════════════════════════════════════════════════════════════════════
-A(I("pct_salud_publica", "Acude a establecimiento público", "%", 0, G, s=True, uni="personas",
+A(I("pct_salud_publica", "Acude a establecimiento público", "%", 0, G, n="mun+mz", s=True, uni="personas",
     e24="p30a_public == 1", e12="P28C == 1", val="salud/2"))
 A(I("pct_caja_salud", "Acude a caja de salud", "%", 0, G, s=True, uni="personas",
     e24="p30b_caja == 1", e12="P28A == 1", val="salud/2"))
-A(I("pct_salud_privada", "Acude a salud privada", "%", 0, G, s=True, uni="personas",
+A(I("pct_salud_privada", "Acude a salud privada", "%", 0, G, n="mun+mz", s=True, uni="personas",
     e24="p30c_privad == 1", e12="P28D == 1", val="salud/2"))
 A(I("pct_salud_tradicional", "Acude a medicina tradicional", "%", 0, G, n="mun+mz", s=True,
     uni="personas", e24="p30e_tradic == 1", e12="P28E == 1", val="salud/2"))
@@ -476,7 +476,7 @@ A(I("pct_nacido_otro_municipio", "Nacidos en otro municipio", "%", 0, G, n="mun+
     uni="personas", e24="mun_nac_cod != municipio", e12="P32H != municipio", val="migracion/2"))
 A(I("pct_nacido_extranjero", "Nacidos en el extranjero", "%", 0, G, n="mun+mz", s=True,
     uni="personas", e24="p35_lugnac == otro país", e12="P32A == otro país", val="migracion/7"))
-A(I("pct_migrante_reciente", "Migrantes recientes (últimos 5 años)", "%", 0, G, s=True,
+A(I("pct_migrante_reciente", "Migrantes recientes (últimos 5 años)", "%", 0, G, n="mun+mz", s=True,
     uni="personas", e24="mun_res5_cod != municipio", e12="P34G != municipio", val="migracion/2"))
 A(I("pct_residia_otro_mun", "Residía en otro municipio", "%", 0, G, n="mun+mz", s=True,
     uni="personas", e24="mun_res_cod != municipio", e12="P33G != municipio"))
@@ -646,6 +646,87 @@ A(I("idx_calidad_vivienda", "Índice de calidad de la vivienda", "índice", 1, G
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# SÓLO MANZANA — la ficha del geoportal trae 127 categorías y el motor usaba 63
+# ═══════════════════════════════════════════════════════════════════════════
+# Estos indicadores NO tienen contraparte municipal: el microdato no los separa
+# igual, o directamente no se calcularon nunca a ese nivel. Entran al tablero
+# rotulados como "sólo manzana" (decisión de Carlos, 2026-08-19), que es lo
+# honesto: al subir de nivel el mapa se queda sin ellos, y eso hay que decirlo
+# en vez de disimularlo.
+# Ninguno tiene serie 2012: las fichas por manzano son sólo de 2024.
+G = "Demografía y estructura"
+A(I("pct_20_39", "De 20 a 39 años", "%", 0, G, n="mz", y12="no", uni="personas",
+    fuente="ficha", e24="edad_20a39 / total de la manzana",
+    nota="La ficha parte la edad en cuatro tramos; el municipal usa otros cortes."))
+A(I("pct_40_59", "De 40 a 59 años", "%", 0, G, n="mz", y12="no", uni="personas",
+    fuente="ficha", e24="edad_40a59 / total de la manzana"))
+
+G = "Agua"
+A(I("pct_agua_vertiente", "Agua de vertiente", "%", -1, G, n="mz", y12="no",
+    fuente="ficha", e24="vertienteprotegida + vertientenoprotegida",
+    nota="La ficha separa vertiente protegida de no protegida; el microdato de "
+         "2012 no, y por eso el indicador municipal no existe."))
+
+G = "Energía y cocina"
+A(I("pct_cocina_electricidad", "Cocina con electricidad", "%", 1, G, n="mz",
+    y12="no", fuente="ficha", e24="combustible_electricidad"))
+A(I("pct_cocina_solar", "Cocina con energía solar", "%", 1, G, n="mz",
+    y12="no", fuente="ficha", e24="combustible_energíasolar"))
+
+G = "Vivienda y materiales"
+A(I("pct_hacinamiento_medio", "Hacinamiento medio", "%", -1, G, n="mz", y12="no",
+    fuente="ficha", e24="hacinamiento_medio",
+    nota="Más de dos y hasta tres personas por dormitorio, según el glosario "
+         "del INE. El tramo 'alto' es el que se publica como pct_hacinamiento."))
+A(I("pct_pared_tabique", "Paredes de tabique o quinche", "%", -1, G, n="mz",
+    y12="no", fuente="ficha", e24="material_paredes_tabique"))
+A(I("pct_piso_madera", "Piso de madera o machihembre", "%", 1, G, n="mz",
+    y12="no", fuente="ficha", e24="material_piso_madera + machimbre"))
+A(I("pct_piso_ladrillo", "Piso de ladrillo", "%", 0, G, n="mz", y12="no",
+    fuente="ficha", e24="material_piso_ladrillo"))
+A(I("pct_viv_colectiva", "Viviendas colectivas", "%", 0, G, n="mz", y12="no",
+    uni="viv_part", fuente="ficha", e24="viviendatipo_colectiva",
+    nota="Cuarteles, conventos, hoteles, hospitales. Se cuentan sobre el total "
+         "de viviendas del manzano."))
+
+G = "Hogares y jefatura"
+A(I("pct_hogar_sin_jefe", "Hogares sin jefe declarado", "%", 0, G, n="mz",
+    y12="no", uni="hogares", fuente="ficha", e24="hogar_sinjefe",
+    nota="Categoría propia de la tipología del INE. Es la que explicaba el "
+         "desajuste de pct_hogar_unipersonal contra el tabulado."))
+
+G = "Empleo"
+A(I("pct_rama_ensenanza", "Trabaja en enseñanza", "%", 0, G, n="mz", y12="no",
+    uni="ocupados", fuente="ficha", e24="actividad_enseñanza"))
+A(I("pct_rama_salud", "Trabaja en salud y asistencia", "%", 0, G, n="mz",
+    y12="no", uni="ocupados", fuente="ficha", e24="actividad_saludyasistencia"))
+
+G = "Migración y territorio"
+A(I("pct_res5_extranjero", "Vivía en otro país hace 5 años", "%", 0, G, n="mz",
+    y12="no", uni="personas", fuente="ficha", e24="residencia_otropais"))
+
+# ── brechas de género ───────────────────────────────────────────────────────
+# ★ La ficha parte 43 categorías por sexo, así que la brecha se puede medir
+#   DENTRO de la manzana. Cada mitad se calcula sobre su propio denominador y
+#   se restan: son puntos porcentuales de mujeres menos hombres.
+#   ⚠️ En manzanas chicas la brecha es ruidosa por construcción (con 20 personas,
+#   una sola cambia el número varios puntos). Se publican las cuatro que tienen
+#   lectura territorial y no las 43 posibles.
+G = "Educación"
+A(I("brecha_edu_ninguno", "Brecha de género: sin educación", "pp", -1, G, n="mz",
+    y12="no", s=True, uni="personas", fuente="ficha",
+    e24="pp de mujeres sin educación menos pp de hombres"))
+G = "Salud"
+A(I("brecha_sin_seguro", "Brecha de género: sin seguro de salud", "pp", -1, G,
+    n="mz", y12="no", s=True, uni="personas", fuente="ficha",
+    e24="pp de mujeres sin seguro menos pp de hombres"))
+G = "Empleo"
+A(I("brecha_cuenta_propia", "Brecha de género: cuenta propia", "pp", 0, G,
+    n="mz", y12="no", s=True, uni="ocupados", fuente="ficha",
+    e24="pp de mujeres por cuenta propia menos pp de hombres"))
+
+
 if __name__ == "__main__":
     import collections, json, pathlib, sys
     n = len(CATALOGO)

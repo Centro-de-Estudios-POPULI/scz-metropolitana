@@ -42,7 +42,8 @@ def columnas(nombre):
 
 mz = set(columnas("manzana_2024.csv"))
 mun = set(columnas("municipal_2024.csv")) | set(columnas("personas_2024.csv")) \
-    | set(columnas("nbi_2024.csv")) | set(columnas("otros_2024.csv"))
+    | set(columnas("nbi_2024.csv")) | set(columnas("otros_2024.csv")) \
+    | set(columnas("geo_2024.csv"))    # densidad y superficie, del mapa maestro
 urb = set(columnas("municipal_urbano_2024.csv"))
 
 # el motor emite su propio vocabulario; manda el del catálogo

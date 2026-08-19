@@ -21,7 +21,7 @@ silencio.
     python comparar_niveles.py
 """
 import pathlib, json
-import pandas as pd
+import pandas as pd, numpy as np
 from alias import renombrar
 
 AQUI = pathlib.Path(__file__).parent
@@ -51,6 +51,9 @@ mz = leer("manzana_agregado_municipal.csv")
 urb = unir("municipal_urbano_2024.csv", "personas_urbano_2024.csv")
 mun = unir("municipal_2024.csv", "personas_2024.csv")
 comp = json.loads((AQUI / "comparables.json").read_text(encoding="utf-8"))["comparables"]
+# la unidad declarada de cada indicador: decide en qué se mide la distancia
+UNID = {i["k"]: i["u"] for i in
+        json.loads((AQUI / "catalogo.json").read_text(encoding="utf-8"))["indicadores"]}
 
 filas = []
 for k in comp:
@@ -63,9 +66,21 @@ for k in comp:
         if len(j) < 100:
             continue
         d = j.mz - j.ref
-        filas.append({"ind": k, "contra": etq, "n": len(j),
-                      "error_abs_medio": d.abs().mean(), "sesgo": d.mean(),
-                      "peor": d.abs().max()})
+        # ★ LA MÉTRICA DEPENDE DE LA UNIDAD, Y LA UNIDAD LA DECLARA EL CATÁLOGO.
+        #   Para un porcentaje, la distancia se mide en puntos porcentuales. Para
+        #   un CONTEO —población, viviendas— la resta está en personas, y medirla
+        #   con el mismo umbral de 10 "pp" excluía `pob_total` por "3.420 pp",
+        #   que no son pp sino gente. Es el mismo error de inferir la naturaleza
+        #   de un indicador en vez de leerla, que este proyecto ya cometió tres
+        #   veces (ver `agregacion.py` y `armar_metro.py`).
+        u_ = UNID.get(k, "%")
+        if u_ in ("%", "pp"):
+            err, ses, peor = d.abs().mean(), d.mean(), d.abs().max()
+        else:
+            rel = 100 * d / j.ref.replace(0, np.nan)
+            err, ses, peor = rel.abs().mean(), rel.mean(), rel.abs().max()
+        filas.append({"ind": k, "contra": etq, "n": len(j), "unidad": u_,
+                      "error_abs_medio": err, "sesgo": ses, "peor": peor})
 r = pd.DataFrame(filas)
 u = r[r.contra == "urbano"].set_index("ind").sort_values("error_abs_medio", ascending=False)
 
@@ -85,7 +100,15 @@ for k, x in u.iterrows():
 #   y admite respuesta múltiple (sus categorías suman 128%), mientras la manzana
 #   divide por la suma de las categorías (suman 100%)— y alcantarillado da 0,59.
 u["sistematico"] = (u.sesgo.abs() / u.error_abs_medio).round(2)
-excluidos = list(u[(u.error_abs_medio > 10) & (u.sistematico > .95)].index)
+# ⚠️ El corte de exclusión también depende de la unidad. Un conteo puede
+#    diferir 30% entre "área urbana censada" y `urbrur==urbana` sin que la
+#    definición sea otra: es el borde urbano, y en los municipios más rurales
+#    llega a +34% (Porongo) mientras en los urbanos puros da 0,0% (Montero).
+#    Excluirlos por eso sería tirar el dato más directo que tiene la ficha.
+TOPE = {"%": 10, "pp": 10}
+excluidos = [k for k in u.index
+             if u.at[k, "error_abs_medio"] > TOPE.get(UNID.get(k, "%"), 60)
+             and u.at[k, "sistematico"] > .95]
 avisar = [k for k in u.index if k not in excluidos and u.at[k, "error_abs_medio"] > UMBRAL]
 
 print(f"\nresumen: error absoluto medio global {u.error_abs_medio.mean():.2f} pp")
@@ -99,9 +122,19 @@ sin_urbano = [k for k in comp if k not in u.index]
 if sin_urbano:
     print(f"\nsin cifra urbana para contrastar ({len(sin_urbano)}): {sin_urbano}")
 
+# ★ SIN CONTRASTE POSIBLE ⇒ NO SE PUBLICA COMO CONTINUO. `densidad` es el caso:
+#   la municipal divide por TODA la superficie del municipio y la de manzana por
+#   la superficie amanzanada. No son la misma magnitud, así que al subir de
+#   nivel el número daría un salto que parece un dato y es un cambio de
+#   denominador. Pasa a "sólo manzana", donde su cifra municipal es el agregado
+#   de sus propias manzanas —eso sí es continuo— y la tarjeta lo dice.
+prev = json.loads((AQUI / "comparables.json").read_text(encoding="utf-8"))
+solo_mz = sorted(set(prev.get("solo_manzana", [])) | set(sin_urbano))
+
 (AQUI / "comparables.json").write_text(json.dumps({
-    **json.loads((AQUI / "comparables.json").read_text(encoding="utf-8")),
+    **prev,
     "verificados": [k for k in u.index if k not in excluidos],
+    "solo_manzana": solo_mz,
     "con_aviso": avisar,
     "excluidos": excluidos,
     "error_pp": {k: round(float(u.at[k, "error_abs_medio"]), 2) for k in u.index},
