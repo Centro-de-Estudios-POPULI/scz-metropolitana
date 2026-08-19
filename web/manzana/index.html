@@ -312,47 +312,54 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
    (`posEnRampa` lo fija en 0,5). O sea que el tono no dice sólo "cuánto":
    dice de qué lado de la región cae este municipio o esta manzana.
 
-   Son DOS rampas, no una con ajustes: sobre el mapa base oscuro los extremos
-   tienen que ser más luminosos para no cerrarse contra el fondo, y sobre el
-   claro pasa lo contrario. La versión oscura además usa un neutro gris
-   (#464a45) donde la clara usa un crema (#eeebe1), porque un crema sobre
-   fondo oscuro se lee como "dato alto" y no como "sin distancia a la región". */
+   ★ UNA SOLA PALETA. En oscuro NO se cambia de rampa: se usan LOS MISMOS
+   colores, más brillantes (pedido de Carlos, 2026-08-19). Antes había dos
+   rampas distintas y al alternar el tema el mapa cambiaba de identidad, no
+   sólo de fondo — un municipio pasaba de verde profundo a verde lima y
+   parecía otro dato.
+
+   El realce es PROPORCIONAL a lo que le falta a cada tono para llegar al
+   blanco (`l + (1-l)·k`), no una suma fija: así los oscuros —que sobre fondo
+   oscuro se cierran y dejan de distinguirse entre sí— suben mucho, y los que
+   ya eran claros casi no se mueven. El tono no se toca, que es lo que hace
+   que se reconozca la misma paleta. */
 const DIV_CLARA = ["#00733b","#419a3a","#8bc53f","#eeebe1","#dea015","#d8690c","#a8381e"];
-const DIV_OSC   = ["#8bc53f","#47a440","#058046","#464a45","#c14821","#e1721e","#e59c24"];
+const REALCE = .26;          // cuánto se acerca cada tono al blanco en oscuro
+
+function hexHSL(h){
+  h = h.replace("#", "");
+  const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255,
+        b = parseInt(h.slice(4,6),16)/255;
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b), l = (mx+mn)/2;
+  if (mx === mn) return [0, 0, l];
+  const d = mx - mn, s = l > .5 ? d/(2-mx-mn) : d/(mx+mn);
+  const hh = mx === r ? ((g-b)/d + (g < b ? 6 : 0))
+           : mx === g ? ((b-r)/d + 2) : ((r-g)/d + 4);
+  return [hh/6, s, l];
+}
+function hslHex(hh, s, l){
+  const f = n => {
+    const k = (n + hh*12) % 12, a = s*Math.min(l, 1-l);
+    const v = l - a*Math.max(-1, Math.min(k-3, 9-k, 1));
+    return Math.round(255*v).toString(16).padStart(2,"0");
+  };
+  return "#" + f(0) + f(8) + f(4);
+}
+/* Un tono más brillante, sin cambiar de tono. La saturación sube apenas para
+   que el aclarado no lo lave. */
+const brillar = c => {
+  const [h, s, l] = hexHSL(c);
+  return hslHex(h, Math.min(1, s*1.06), l + (1 - l)*REALCE);
+};
+const DIV_OSCURO = DIV_CLARA.map(brillar);   // se calcula una vez, no por pintado
+
 /* `dir === 1` significa que más es PEOR, así que la rampa se da vuelta y el
    verde queda del lado bueno en los dos casos. */
 const rampa = dir => {
-  const r = esOscuro() ? DIV_OSC : DIV_CLARA;
+  const r = esOscuro() ? DIV_OSCURO : DIV_CLARA;
   return dir === 1 ? r.slice().reverse() : r.slice();
 };
-const UMBRAL_ZOOM = 11.4;     // a partir de acá el nivel manzana tiene sentido visual
-/* Un gris único para los dos temas, declarado por la Gobernación. Antes eran
-   dos —uno por tema— y ese matiz no aportaba nada: lo que tiene que hacer el
-   "sin dato" es no parecerse a ningún tono de la rampa, y este no se parece en
-   ninguno de los dos fondos. Acá es sobre todo el gris de las 13.194 manzanas
-   que el INE suprime por privacidad, que se dibujan a propósito. */
-const SIN_DATO = {claro:"#8a8f96", oscuro:"#8a8f96"};
 
-/* OPACIDADES. Bajas a propósito: el coroplético va ENCIMA de un mapa real, y si
-   lo tapa deja de servir de referencia justo cuando más se la necesita —al
-   acercarse a la manzana—. Con el relleno translúcido se leen las dos cosas: el
-   valor por el tono y el lugar por la calle de abajo. */
-/* ★ MÁS BAJAS EN OSCURO, y no es capricho: la rampa de la Gobernación tiene
-   #8bc53f —un verde muy luminoso y saturado— en un extremo, y cuando la mayoría
-   de los valores cae de ese lado (pasa con `pct_agua_pozo`, donde la mediana es
-   0,0%) el mapa entero se vuelve un bloque de verde neón sobre el fondo oscuro
-   y deja de leerse la ciudad debajo. La rampa vieja no tenía el problema porque
-   su extremo era un teal casi negro, que se fundía con el fondo.
-   Fotografiado en oscuro antes de bajarlas. */
-const OPACIDAD_CLARO  = {mun: .55, mz: .62};
-const OPACIDAD_OSCURO = {mun: .42, mz: .46};
-const opacidades = () => esOscuro() ? OPACIDAD_OSCURO : OPACIDAD_CLARO;
-
-/* Color de SEÑAL, no de dato: marca qué está seleccionado (el contorno del
-   municipio, el marcador del pivote, el borde de la barra activa). Antes era el
-   oro del Observatorio, que contra la rampa nueva cae justo sobre su tramo
-   ámbar y se confunde con un valor alto. El verde del logotipo no aparece en
-   ningún tramo de las dos rampas, así que no puede leerse como dato. */
 const SENAL = "#8bc53f";
 
 /* FUNDIDO POR ZOOM. En vez de que el nivel cambie de golpe con el botón, las dos
