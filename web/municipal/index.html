@@ -373,13 +373,26 @@ const SENAL = "#8bc53f";
      z11 una sola tesela se lleva 8.707 manzanas de un píxel. Eso es la mancha
      que este proyecto decidió no mostrar, y encima es el nivel más pesado.
      Las teselas empiezan en z12 (`generar_pmtiles.py`), justo antes de Z0. */
-const Z0 = 12.4, ZC = 12.7, Z1 = 13.0;
-/* ★ LA BANDA ES ANGOSTA (0,6) A PROPÓSITO. La primera versión cruzaba en 1,2 y
+const Z0 = 12.0, ZC = 12.3, Z1 = 12.7;
+/* ★ LA BANDA ES ANGOSTA (0,7) A PROPÓSITO. La primera versión cruzaba en 1,2 y
    dejaba una zona muerta alrededor de z12,5: el relleno municipal ya estaba
    lavado y el de manzana todavía no pesaba, así que durante medio nivel de
    zoom no se leía bien ninguno de los dos. Fotografiado en los cuatro pasos
-   antes de angostarla. Es el mismo ancho que usa desarrollo-infantil (±0,3
-   alrededor de su umbral de detalle), y por la misma razón. */
+   antes de angostarla. Es casi el mismo ancho que usa desarrollo-infantil
+   (±0,3 alrededor de su umbral de detalle), y por la misma razón.
+
+   ★ Y ARRANCA EN 12,0 PORQUE ES DONDE ENTRA LA CIUDAD, no por gusto. A la
+   latitud de Santa Cruz, con una pantalla de 1280 px:
+       z12,0 → 46,6 km de ancho · manzana de 100 m = 2,7 px
+       z12,3 → 38,0 km          · 3,3 px
+       z12,7 → 28,7 km          · 4,5 px
+   La mancha urbana mide ~25 km, así que cruzando en 12,7 —como estaba— la
+   ciudad recién entraba justa, y EN MÓVIL (390 px) se veían 8,7 km: un tercio.
+   Se adelantó medio nivel para que el cambio ocurra cuando todavía se ve la
+   ciudad entera y no una porción.
+   ⚠️ NO SE PUEDE BAJAR MÁS SIN REGENERAR LAS TESELAS: `generar_pmtiles.py`
+   arranca en z12 y MapLibre pide `floor(zoom)`, así que por debajo de 12,0 no
+   hay tesela que pedir. Y a z11 la manzana mide 1,8 px, que es la mancha. */
 const fundido = (a, b) => ["interpolate", ["linear"], ["zoom"], Z0, a, Z1, b];
 
 let CAT, MUN, FIS, cat_actual, ind_actual, nivel = "municipio", anio_i = 9;
