@@ -1,4 +1,28 @@
 """
+⛔ DESACTIVADO EL 2026-08-19 — NO CORRER.
+=========================================
+
+Este script traía la hoja del Atlas Socioeconómico del OFPDT para que "los tres
+mapas del ecosistema no se separen". **Ese ya no es el requisito**: el Atlas
+Metropolitano pasó a ser un trabajo para el Gobierno Autónomo Departamental de
+Santa Cruz, con su propia paleta y su propio logotipo, y separarse es
+justamente lo que se pide (decisión de Carlos, 2026-08-19).
+
+Correrlo regeneraría `web/estilo-atlas.css` desde el Observatorio. No borraría
+`identidad-gobernacion.css` —que se carga después y gana la cascada— pero sí
+devolvería los tokens viejos a la hoja de base y volvería a atar este tablero a
+una identidad que no le corresponde.
+
+Se conserva en el repositorio, y no se borra, porque documenta de dónde salió la
+ESTRUCTURA de `estilo-atlas.css` (paneles, tarjetas, tooltip, termómetro), que
+sigue en uso. Lo que ya no debe volver a viajar es el color.
+
+Si algún día hace falta re-extraer la estructura, hay que sacarle el `sys.exit`
+de abajo a mano y revisar a ojo que no pise los tokens de la Gobernación.
+
+────────────────────────────────────────────────────────────────────────────
+Documentación original:
+
 Extrae la hoja de estilo del Atlas Socioeconómico a `web/estilo-atlas.css`.
 
 Se extrae en vez de transcribirse a mano: la identidad son ~200 reglas y copiar
@@ -60,4 +84,9 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+    sys.exit("DESACTIVADO: este script re-ataría el tablero a la identidad del "
+             "OFPDT. El Atlas Metropolitano usa la de la Gobernación "
+             "(web/identidad-gobernacion.css). Ver el encabezado del archivo.")
+
     main()

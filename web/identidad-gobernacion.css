@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   IDENTIDAD DEL GOBIERNO AUTÓNOMO DEPARTAMENTAL DE SANTA CRUZ
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ ESTE ARCHIVO ES EXCLUSIVO DEL ATLAS METROPOLITANO. Decisión de Carlos
+      (2026-08-19): el tablero es un trabajo para la Gobernación y no lleva la
+      marca del OFPDT ni de sus instituciones. Nada de acá se propaga al Atlas
+      Socioeconómico, a la Galería ni a ningún repositorio del Observatorio.
+
+   ⚠️ Y AL REVÉS TAMBIÉN: `scripts/extraer_estilo.py` traía `estilo-atlas.css`
+      DESDE el Atlas del Observatorio para "que los tres mapas del ecosistema no
+      se separen". Ese script quedó desactivado a propósito, porque acá separarse
+      es justamente el requisito. Si se reactivara, pisaría esta identidad.
+
+   Se carga DESPUÉS de `estilo-atlas.css`, que aporta la estructura (paneles,
+   tarjetas, tooltip, termómetro). Lo que se reemplaza acá son los TOKENS de
+   color y la marca. Nada de estructura, para no duplicar reglas que ya andan.
+
+   Paleta entregada por la Gobernación:
+     rampa clara  #00733b #419a3a #8bc53f #eeebe1 #dea015 #d8690c #a8381e
+     rampa oscura #8bc53f #47a440 #058046 #464a45 #c14821 #e1721e #e59c24
+     sin datos    #8a8f96
+   Las dos rampas viven en el JS (`DIV_CLARA` / `DIV_OSC`), que es donde pintan
+   el mapa municipal, el de manzanas, el termómetro, las barras, los minimapas
+   y la tira de distribución. Acá van los tonos de INTERFAZ derivados de ellas.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Marca ──────────────────────────────────────────────────────────────
+     El verde del logotipo es el acento; el verde profundo de la rampa es el
+     color institucional con el que se pintan barras y estados activos. */
+  --scz-verde:#8bc53f;          /* el verde del logotipo */
+  --scz-verde-prof:#00733b;     /* extremo "bueno" de la rampa clara */
+  --scz-ambar:#dea015;
+  --scz-naranja:#d8690c;
+  --scz-rojo:#a8381e;
+  --scz-neutro:#eeebe1;         /* el centro de la rampa clara */
+  --scz-sindato:#8a8f96;
+
+  /* ── Tokens que reemplazan a los del Observatorio ───────────────────── */
+  --red:var(--scz-rojo);
+  --red-dk:#8d2d18;
+  --orange:var(--scz-naranja);
+  --amber:var(--scz-ambar);
+  --warm:var(--scz-verde);      /* el "Santa Cruz:" del título, el marcador */
+  --mint:#a9d97a;
+  --teal:var(--scz-verde-prof);
+  --teal-dk:#00532b;
+  --sel:var(--scz-verde-prof);  /* selección: municipio elegido, tarjeta activa */
+  --ink:#12181c;
+
+  /* Barra superior: verde profundo institucional en lugar del teal del
+     Observatorio. Es oscura en los dos temas, por eso el logo que va arriba
+     es siempre el de texto claro. */
+  --topbar:#04452a;
+  --topline:#03361f;
+
+  /* Neutros cálidos alineados al centro de la rampa (#eeebe1), que es el
+     neutro que la Gobernación declara. Los del Observatorio eran un crema
+     distinto y al lado de la rampa nueva se veían amarillentos. */
+  --fondo:#eeebe1;
+  --glass:#fbfaf6db;
+  --gris-card:#e7e3d7;
+  --linea:#d7d2c4;
+  --linea-2:#e6e2d6;
+  --card-solid:#fffefb;
+  --card-hov:#f6f4ee;
+  --kpi-on:#f2f7ec;             /* un verde apenas insinuado, no el celeste */
+  --foot-bg:#fffefb88;
+  --sheet-fade:#fbfaf6f2;
+  --tx:#1d2321;
+  --suave:#5f6a63;
+  --faint:#949c96;
+  --sh:0 1px 0 #12181c08, 0 10px 30px #12181c12;
+}
+
+/* ── Tema oscuro ──────────────────────────────────────────────────────────
+   El fondo no es negro puro sino un carbón con tinte verde muy leve, para que
+   el verde de la rampa no quede flotando sobre un gris ajeno. */
+body.dark{
+  --fondo:#12181c;
+  --glass:#1a2124db;
+  --gris-card:#1c2427;
+  --linea:#2b3532;
+  --linea-2:#212a28;
+  --card-solid:#19201f;
+  --card-hov:#1f2826;
+  --kpi-on:#17251c;
+  --foot-bg:#19201f88;
+  --sheet-fade:#12181cf2;
+  --tx:#e4e9e4;
+  --suave:#9aa6a0;
+  --faint:#6d7a74;
+  /* ⚠️ ESTO DECÍA `#04352010`: un hex de OCHO dígitos, donde los dos últimos
+     son el alfa — 6% — así que la barra superior salía casi transparente y el
+     texto de la derecha quedaba flotando sobre el mapa. Es la misma familia de
+     error que el hex de cinco dígitos del Monitor de Actividad: no falla, sólo
+     se ve mal, y sólo se caza mirando. */
+  --topbar:#043520;
+  --warm:var(--scz-verde);
+  --sel:var(--scz-verde);       /* el verde profundo no se ve sobre carbón */
+  --teal:var(--scz-verde);
+  --sh:0 1px 0 #0006, 0 10px 30px #0004;
+}
+
+/* ── La marca en la barra superior ────────────────────────────────────────
+   El logotipo entregado es apaisado (688×168 ≈ 4,1:1). Se fija por ALTO y el
+   ancho sale solo: fijarlo por ancho lo deformaba al encogerse la barra. */
+.marca{display:flex;align-items:center;flex-shrink:0;height:30px;
+  text-decoration:none;transition:opacity .15s}
+.marca img{height:26px;width:auto;display:block}
+.marca:hover{opacity:.82}
+.marca:focus-visible{outline:2px solid var(--scz-verde);outline-offset:3px;border-radius:2px}
+
+/* ── La marca en el pie del panel izquierdo ─────────────────────────────── */
+.marca-pie{display:block;margin:0 0 7px;text-decoration:none}
+.marca-pie img{height:30px;width:auto;max-width:100%;display:block}
+body.dark .marca-pie img{content:url("img/scz-oscuro.png")}
+.fuente-pie{font-size:.6rem;color:var(--faint);line-height:1.45;margin-bottom:2px}
+
+/* En pantallas angostas la barra se queda sin sitio: primero se va el
+   subtítulo y después el logotipo, antes que apretar los conmutadores. */
+@media (max-width:720px){
+  .marca img{height:22px}
+}
+@media (max-width:520px){
+  .marca{display:none}
+}
+
+/* ── Detalles que el cambio de paleta deja fuera de tono ───────────────────
+   El contorno del municipio seleccionado y el marcador del termómetro estaban
+   en el oro del Observatorio (#ee9b00), que contra la rampa nueva compite con
+   el tramo ámbar y se confunde con un valor. El verde del logotipo no aparece
+   en ningún tramo de las dos rampas, así que sirve de señal y no de dato. */
+.tm-mk{background:var(--scz-verde)}
+.cmp .cmp-n.sel{fill:var(--sel)}
