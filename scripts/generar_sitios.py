@@ -11,7 +11,6 @@ dos veces sería tirar trabajo y duplicar los bugs.
 ⇒ Este script deriva los dos `index.html` del original, cambiando sólo:
 
   · qué par de archivos carga (cada tablero tiene su catálogo y sus municipios),
-  · si existe el conmutador Municipio/Manzana,
   · el título y las rutas relativas (los datos quedan COMPARTIDOS en `web/datos/`,
     así la geometría de las manzanas —12,4 MB— no se duplica).
 
@@ -31,14 +30,12 @@ SITIOS = {
    "cabecera": "<b>Santa Cruz:</b> Atlas Metropolitano",
    "catalogo": "catalogo_municipal.json",
    "municipios": "municipios_municipal.json",
-   "toggle": False,
  },
  "manzana": {
    "titulo": "Santa Cruz · Atlas Metropolitano — Municipio y manzana",
    "cabecera": "<b>Santa Cruz:</b> Atlas Metropolitano <span class=\"t-sub\">· manzana</span>",
    "catalogo": "catalogo_manzana.json",
    "municipios": "municipios_manzana.json",
-   "toggle": True,
  },
 }
 
@@ -50,8 +47,17 @@ def derivar(html, cfg):
     #    era HTML sin estilo, o sea invisible. Un 404 de CSS no rompe nada, sólo
     #    borra la mitad del producto.
     html = html.replace('href="estilo-atlas.css"', 'href="../estilo-atlas.css"')
+    # la identidad de la Gobernación y sus logotipos viven en `web/`, un nivel
+    # arriba de cada tablero, igual que los datos
+    html = html.replace('href="identidad-gobernacion.css"', 'href="../identidad-gobernacion.css"')
+    html = html.replace('src="img/', 'src="../img/')
+    html = html.replace('url("img/', 'url("../img/')
     html = html.replace('fetch("datos/', 'fetch("../datos/')
     html = html.replace('fetch(`datos/', 'fetch(`../datos/')
+    # ⚠️ El archivo de teselas NO se pide con fetch: lo resuelve el protocolo
+    #    `pmtiles://`, así que los dos reemplazos de arriba no lo alcanzaban y
+    #    la ruta quedaba un nivel arriba de donde está.
+    html = html.replace('new URL("datos/', 'new URL("../datos/')
     # ── cada tablero, su par de archivos ──
     # ⚠️ La plantilla apunta al par del tablero MUNICIPAL, no al pipeline viejo.
     #    `web/index.html` no es sólo una plantilla: es la página que responde en
@@ -64,15 +70,12 @@ def derivar(html, cfg):
     html = re.sub(r"<title>.*?</title>", f"<title>{cfg['titulo']}</title>", html, count=1)
     html = re.sub(r'(<div class="t-h">).*?(</div>)',
                   lambda m: m.group(1) + cfg["cabecera"] + m.group(2), html, count=1)
-    if not cfg["toggle"]:
-        # ⚠️ El conmutador se OCULTA, no se borra. Al quitar los botones del HTML,
-        #    `document.querySelector('#niv button[data-n="manzana"]')` devolvía
-        #    null y la línea siguiente (`bMz.disabled = …`) tiraba TypeError: la
-        #    página quedaba con el mapa base y nada más. Ocultarlo deja todos los
-        #    selectores en pie y el nivel fijo en "municipio".
-        #   ⚠️ La regla es `.niv{`, por CLASE, no `#niv{`: apuntar al id no
-        #      coincidía con nada y el conmutador seguía a la vista, apagado.
-        html = html.replace(".niv{display:flex", ".niv{display:none")
+    # ⚠️ Ya no hay conmutador que ocultar en un tablero y mostrar en el otro:
+    #    el nivel lo decide el ZOOM en los dos (`nivelDeZoom()`), y `.niv` está
+    #    oculto en la plantilla. Lo que distingue a los tableros es sólo el
+    #    catálogo: si declara nivel `manzana`, se monta la capa de teselas.
+    #    El botón se sacó porque no tenía nada que decidir — los 59 indicadores
+    #    del tablero de manzana existen en los dos niveles (59 de 59, medido).
     return html
 
 
@@ -86,7 +89,7 @@ def main():
         out = d / "index.html"
         out.write_text(derivar(base, cfg), encoding="utf-8")
         print(f"  -> web/{slug}/index.html   {out.stat().st_size/1024:.0f} KB "
-              f"· {cfg['catalogo']} · toggle {'sí' if cfg['toggle'] else 'no'}")
+              f"· {cfg['catalogo']}")
 
 
 if __name__ == "__main__":

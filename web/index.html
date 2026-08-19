@@ -10,6 +10,10 @@
 <!-- La identidad se extrae del Atlas Socioeconómico, no se transcribe:
      `python scripts/extraer_estilo.py`. Ver la cabecera del archivo. -->
 <link href="estilo-atlas.css" rel="stylesheet">
+<!-- ⚠️ DESPUÉS de estilo-atlas.css a propósito: esa hoja trae la estructura y
+     los tokens del Observatorio, y ésta los reemplaza por los de la
+     Gobernación. Si se invirtiera el orden, la identidad vieja ganaría. -->
+<link href="identidad-gobernacion.css" rel="stylesheet">
 <style>
 /* ── Sólo lo propio de este tablero. Todo lo demás vive en estilo-atlas.css ── */
 #mapbox{position:fixed;inset:0}
@@ -19,7 +23,7 @@
 
 /* Selector de nivel: es el control que define este producto, así que va en la
    barra superior y no escondido en un panel. */
-.niv{display:flex;flex:none;border:1px solid rgba(255,255,255,.22);overflow:hidden}
+.niv{display:none}   /* el nivel lo decide el zoom: ver `nivelDeZoom()` */
 /* Conmutador de CENSO: el mismo control visual que el de nivel —son dos ejes del
    mismo tablero y tienen que verse hermanos— pero con CLASE PROPIA, porque
    `generar_sitios.py` apaga la regla de arriba por reemplazo de texto para el
@@ -130,6 +134,26 @@ body.dark .aviso b{color:var(--orange)}
 .cmp .cmp-n.sel{fill:var(--sel);font-weight:700}
 .cmp .cmp-v{font:700 3.9px var(--f);fill:var(--tx);font-variant-numeric:tabular-nums}
 .cmp .cmp-piv{stroke:var(--tx);stroke-width:.5;stroke-dasharray:1.6 1.4;opacity:.55}
+/* ── Distribución dentro del municipio ───────────────────────────────────────
+   Mismas unidades de viewBox que el comparativo (1 unidad = 2,2-3,0 px reales),
+   así las dos lecturas se apilan sin cambiar de tamaño de letra. El bigote es
+   deliberadamente tenue: lo que se lee primero es la caja —la mitad más
+   común— y la línea de la mediana. */
+.cmp .ds-w{stroke:var(--faint);stroke-width:.45;opacity:.75}
+.cmp .ds-med{stroke:var(--tx);stroke-width:.75}
+.cmp .ds-g{font:600 3.6px var(--f);fill:var(--suave);font-variant-numeric:tabular-nums}
+.cmp .ds-u{font-weight:500;fill:var(--faint)}
+.cmp .ds-ax{font:500 3.2px var(--f);fill:var(--faint)}
+.cmp .ds-hit{fill:transparent;cursor:pointer}
+.cmp .ds-hit:hover{fill:var(--tx);fill-opacity:.045}
+.ds-ley{display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;
+  font-size:.56rem;color:var(--faint);margin:5px 0 2px;line-height:1.4}
+.ds-ley span{display:inline-block;margin-right:2px}
+.ds-k1{width:13px;height:0;border-top:1.5px solid var(--faint);opacity:.8;
+  transform:translateY(-2px)}
+.ds-k2{width:11px;height:7px;border-radius:1.5px;background:var(--faint);opacity:.55;
+  transform:translateY(1px)}
+.ds-k3{width:0;height:9px;border-left:1.5px solid var(--tx);transform:translateY(2px)}
 .sin{font-size:.7rem;color:var(--faint);padding:6px 0}
 
 /* ── Serie fiscal: 10 gestiones del municipio contra la región ───────────────
@@ -195,15 +219,16 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
 <div id="carga"><i></i></div>
 
 <div id="top">
-  <div class="logo"><svg viewBox="0 0 200 200">
-    <polygon points="100,10 155,35 191,84 173,142 130,183 69,185 26,143 10,84 45,35" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="7"/>
-    <polygon points="100,38 138,55 165,90 152,131 121,160 78,161 47,132 36,90 62,55" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="6"/>
-    <polygon points="100,64 124,75 141,97 133,124 113,143 86,144 66,125 59,97 76,75" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="5"/>
-    <polygon points="100,88 111,93 119,104 115,116 106,125 94,126 84,117 81,104 89,93" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="4"/>
-  </svg></div>
+  <!-- La barra superior es oscura en los DOS temas, así que va siempre el
+       logo de texto claro. El de texto oscuro queda para fondo claro (pie,
+       impresos, portadas). -->
+  <a class="marca" href="https://www.santacruz.gob.bo" target="_blank" rel="noopener"
+     aria-label="Gobierno Autónomo Departamental de Santa Cruz">
+    <img src="img/scz-oscuro.png" alt="Gobierno Autónomo Departamental de Santa Cruz">
+  </a>
   <div class="t-tit">
     <div class="t-h"><b>Santa Cruz:</b> Atlas Metropolitano</div>
-    <div class="t-name">Observatorio de Finanzas Públicas y Desarrollo Territorial</div>
+    <div class="t-name">Región Metropolitana · Censo 2024</div>
   </div>
   <div class="top-sp"></div>
   <div class="seg" id="anio-seg" role="group" aria-label="Censo en pantalla">
@@ -234,8 +259,14 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
     <div class="lista" id="lista"></div>
   </div>
   <div class="p-foot">
-    Una iniciativa de <a href="#">CCTD</a><span class="sep">·</span><a href="#">POPULI</a><span class="sep">·</span><a href="#">UPSA</a><br>
-    <a href="#">Ir al portal del OFPDT ↗</a>
+    <!-- Este tablero es un producto de la Gobernación y se presenta como tal:
+         no lleva las marcas del OFPDT ni de sus instituciones (decisión de
+         Carlos, 2026-08-19). El logo de texto oscuro es el que corresponde
+         sobre el fondo claro del panel. -->
+    <a class="marca-pie" href="https://www.santacruz.gob.bo" target="_blank" rel="noopener">
+      <img src="img/scz-claro.png" alt="Gobierno Autónomo Departamental de Santa Cruz">
+    </a>
+    <div class="fuente-pie">Fuente: INE · Censo de Población y Vivienda 2024</div>
     <div class="cober" id="cober"></div>
   </div>
 </div>
@@ -247,6 +278,7 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
   </div>
   <div class="p-body">
     <div id="cmp"></div>
+    <div id="dist"></div>
     <div id="serie"></div>
     <div class="kgrid" id="kgrid"></div>
   </div>
@@ -263,6 +295,7 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
 <div id="pop"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
    ATLAS METROPOLITANO DE SANTA CRUZ
@@ -274,21 +307,79 @@ body.dark{--ser-mun:#43b3bd;--ser-reg:#c3d0d6}
    atlas nacional no es un detalle: es la razón de que el ecosistema sirva.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const DIV = ["#00323d","#005f73","#0a9396","#94d2bd","#e9d8a6","#eda13e","#df5d25","#c71e1d","#8f1f22"];
+/* ── RAMPA DIVERGENTE DE LA GOBERNACIÓN ──────────────────────────────────
+   Verde ← neutro → naranja, con el pivote de la región clavado en el centro
+   (`posEnRampa` lo fija en 0,5). O sea que el tono no dice sólo "cuánto":
+   dice de qué lado de la región cae este municipio o esta manzana.
+
+   Son DOS rampas, no una con ajustes: sobre el mapa base oscuro los extremos
+   tienen que ser más luminosos para no cerrarse contra el fondo, y sobre el
+   claro pasa lo contrario. La versión oscura además usa un neutro gris
+   (#464a45) donde la clara usa un crema (#eeebe1), porque un crema sobre
+   fondo oscuro se lee como "dato alto" y no como "sin distancia a la región". */
+const DIV_CLARA = ["#00733b","#419a3a","#8bc53f","#eeebe1","#dea015","#d8690c","#a8381e"];
+const DIV_OSC   = ["#8bc53f","#47a440","#058046","#464a45","#c14821","#e1721e","#e59c24"];
+/* `dir === 1` significa que más es PEOR, así que la rampa se da vuelta y el
+   verde queda del lado bueno en los dos casos. */
+const rampa = dir => {
+  const r = esOscuro() ? DIV_OSC : DIV_CLARA;
+  return dir === 1 ? r.slice().reverse() : r.slice();
+};
 const UMBRAL_ZOOM = 11.4;     // a partir de acá el nivel manzana tiene sentido visual
-const SIN_DATO = {claro:"#dfe5ea", oscuro:"#243440"};
+/* Un gris único para los dos temas, declarado por la Gobernación. Antes eran
+   dos —uno por tema— y ese matiz no aportaba nada: lo que tiene que hacer el
+   "sin dato" es no parecerse a ningún tono de la rampa, y este no se parece en
+   ninguno de los dos fondos. Acá es sobre todo el gris de las 13.194 manzanas
+   que el INE suprime por privacidad, que se dibujan a propósito. */
+const SIN_DATO = {claro:"#8a8f96", oscuro:"#8a8f96"};
 
 /* OPACIDADES. Bajas a propósito: el coroplético va ENCIMA de un mapa real, y si
    lo tapa deja de servir de referencia justo cuando más se la necesita —al
    acercarse a la manzana—. Con el relleno translúcido se leen las dos cosas: el
    valor por el tono y el lugar por la calle de abajo. */
-const OPACIDAD = {mun: .55, mz: .62};
+/* ★ MÁS BAJAS EN OSCURO, y no es capricho: la rampa de la Gobernación tiene
+   #8bc53f —un verde muy luminoso y saturado— en un extremo, y cuando la mayoría
+   de los valores cae de ese lado (pasa con `pct_agua_pozo`, donde la mediana es
+   0,0%) el mapa entero se vuelve un bloque de verde neón sobre el fondo oscuro
+   y deja de leerse la ciudad debajo. La rampa vieja no tenía el problema porque
+   su extremo era un teal casi negro, que se fundía con el fondo.
+   Fotografiado en oscuro antes de bajarlas. */
+const OPACIDAD_CLARO  = {mun: .55, mz: .62};
+const OPACIDAD_OSCURO = {mun: .42, mz: .46};
+const opacidades = () => esOscuro() ? OPACIDAD_OSCURO : OPACIDAD_CLARO;
+
+/* Color de SEÑAL, no de dato: marca qué está seleccionado (el contorno del
+   municipio, el marcador del pivote, el borde de la barra activa). Antes era el
+   oro del Observatorio, que contra la rampa nueva cae justo sobre su tramo
+   ámbar y se confunde con un valor alto. El verde del logotipo no aparece en
+   ningún tramo de las dos rampas, así que no puede leerse como dato. */
+const SENAL = "#8bc53f";
 
 /* FUNDIDO POR ZOOM. En vez de que el nivel cambie de golpe con el botón, las dos
    capas conviven y se cruzan en una banda de zoom: al acercarte, los municipios
    se desvanecen mientras las manzanas aparecen. El botón sólo te lleva de un
    lado al otro de esa banda. */
-const Z0 = 10.6, Z1 = 12.2;   // banda del cruce
+/* ── LA BANDA DEL CRUCE ───────────────────────────────────────────────────
+   El zoom es lo ÚNICO que cambia de nivel: no hay botón. Se sacó porque no
+   tenía nada que decidir — los 59 indicadores del tablero de manzana existen
+   en los dos niveles (medido: 59 de 59 con `k_mun` Y `k_mz`), así que cruzar
+   nunca obliga a cambiar de indicador.
+
+   Z0 → el relleno de manzana empieza a aparecer
+   ZC → el punto donde cambia el nivel LÓGICO (leyenda, panel, tooltip)
+   Z1 → el relleno municipal terminó de irse
+
+   ★ Arranca en 12,2 y no en 10,6 como antes, y es una decisión de lectura: a
+     z11 una sola tesela se lleva 8.707 manzanas de un píxel. Eso es la mancha
+     que este proyecto decidió no mostrar, y encima es el nivel más pesado.
+     Las teselas empiezan en z12 (`generar_pmtiles.py`), justo antes de Z0. */
+const Z0 = 12.4, ZC = 12.7, Z1 = 13.0;
+/* ★ LA BANDA ES ANGOSTA (0,6) A PROPÓSITO. La primera versión cruzaba en 1,2 y
+   dejaba una zona muerta alrededor de z12,5: el relleno municipal ya estaba
+   lavado y el de manzana todavía no pesaba, así que durante medio nivel de
+   zoom no se leía bien ninguno de los dos. Fotografiado en los cuatro pasos
+   antes de angostarla. Es el mismo ancho que usa desarrollo-infantil (±0,3
+   alrededor de su umbral de detalle), y por la misma razón. */
 const fundido = (a, b) => ["interpolate", ["linear"], ["zoom"], Z0, a, Z1, b];
 
 let CAT, MUN, FIS, cat_actual, ind_actual, nivel = "municipio", anio_i = 9;
@@ -329,7 +420,7 @@ function difIntercensal(a, b, ind){
       || !isFinite(a) || !isFinite(b)) return null;
   return esConteo(ind) ? (a ? 100 * (b - a) / a : null) : b - a;
 }
-let mzCargadas = {}, mzTodas = null, sel = null;
+let MZS = null, sel = null;   // MZS = estadísticas precalculadas del nivel manzana
 // Escala vigente (la que acaba de pintar el mapa). El tooltip la lee para dar el
 // chip de color, la posición en la rampa y el percentil sin recalcular nada.
 let ESC = null;
@@ -345,19 +436,27 @@ function aplicarTema(oscuro, guardar){
   document.body.classList.toggle("dark", oscuro);
   const b = document.getElementById("theme-btn");
   if (b) b.title = oscuro ? "Modo claro" : "Modo oscuro";
-  if (guardar) { try { localStorage.setItem("ofpdt-tema", oscuro ? "dark" : "light"); } catch(_){} }
+  if (guardar) { try { localStorage.setItem("scz-tema", oscuro ? "dark" : "light"); } catch(_){} }
   if (map && map.getLayer && map.getLayer("base_claro")){
     map.setLayoutProperty("base_claro", "visibility", oscuro ? "none" : "visible");
     map.setLayoutProperty("base_oscuro", "visibility", oscuro ? "visible" : "none");
-    map.setPaintProperty("fondo", "background-color", oscuro ? "#0b1318" : "#f2efe8");
-    const borde = oscuro ? "#0b1318" : "#ffffff";
+    map.setPaintProperty("fondo", "background-color", oscuro ? "#12181c" : "#eeebe1");
+    const borde = oscuro ? "#12181c" : "#ffffff";
     if (map.getLayer("mun-line")) map.setPaintProperty("mun-line", "line-color", borde);
     if (map.getLayer("mz-line")) map.setPaintProperty("mz-line", "line-color", borde);
+    /* Las opacidades cambian con el tema (ver OPACIDAD_*), así que hay que
+       volver a declararlas acá: se fijan al montar la capa y no se enteran
+       solas de que el fondo cambió. */
+    if (map.getLayer("mun-fill"))
+      map.setPaintProperty("mun-fill", "fill-opacity",
+        hayManzana() ? fundido(opacidades().mun, 0) : opacidades().mun);
+    if (map.getLayer("mz-fill"))
+      map.setPaintProperty("mz-fill", "fill-opacity", fundido(0, opacidades().mz));
   }
   if (map) pintar();
   if (typeof CAT !== "undefined" && CAT && cat_actual) montarIndicadores();
 }
-(() => { let p = null; try { p = localStorage.getItem("ofpdt-tema"); } catch(_){}
+(() => { let p = null; try { p = localStorage.getItem("scz-tema"); } catch(_){}
   aplicarTema(p ? p === "dark" : matchMedia("(prefers-color-scheme:dark)").matches, false); })();
 document.getElementById("theme-btn").onclick = () => aplicarTema(!esOscuro(), true);
 
@@ -414,7 +513,7 @@ function escala(valores, pesos, ind, ambito){
     const m = (decl && ANIO === "cambio" && ind.domd != null) ? ind.domd
             : (Math.max(Math.abs(cuantil(ord, .02)), Math.abs(cuantil(ord, .98))) || 1);
     lo = -m; hi = m; piv = 0; tipo = ANIO === "cambio" ? "sin cambio" : "cero";
-    const tonosC = ind.dir === 1 ? DIV.slice().reverse() : DIV;
+    const tonosC = rampa(ind.dir);
     return {lo, piv, hi, pivReal: 0, tipo, tonos: tonosC, ord,
             min: ord[0], max: ord[ord.length-1],
             recorte: ord[0] < lo || ord[ord.length-1] > hi, n: v.length};
@@ -455,7 +554,7 @@ function escala(valores, pesos, ind, ambito){
      rebautizar un borde con el nombre de una estadística. */
   const pivReal = piv, pad = (hi - lo) * .08;
   if (pad > 0) piv = Math.min(Math.max(piv, lo + pad), hi - pad);
-  const tonos = ind.dir === 1 ? DIV.slice().reverse() : DIV;
+  const tonos = rampa(ind.dir);
   // `ord` viaja de vuelta —ya está calculado— porque el tooltip necesita saber a
   // qué percentil corresponde un valor, y reordenar 25.698 manzanas en cada
   // movimiento del mouse sería absurdo.
@@ -463,6 +562,27 @@ function escala(valores, pesos, ind, ambito){
           min: ord[0], max: ord[ord.length-1],
           recorte: ord[0] < lo || ord[ord.length-1] > hi, n: v.length};
 }
+/* ★ LA ESCALA DEL NIVEL MANZANA, PRECALCULADA.
+   `escala()` necesita todos los valores para sacar cuantiles, y en el nivel
+   manzana ya no los hay en el cliente. Lo que hace `estadisticas_manzana.py`
+   es exactamente la misma cuenta, movida a tiempo de armado: mismo `cuantil()`,
+   mismo dominio 2%-98%, mismo pivote ponderado por personas.
+   Devuelve la misma forma de objeto que `escala()` para que la leyenda, el
+   termómetro y el tooltip no tengan que saber de dónde salió. */
+function escalaManzana(ind){
+  const st = MZS && MZS[ind.k_mz];
+  if (!st || !st.esc) return null;
+  const e = st.esc;
+  let lo = e.lo, hi = e.hi;
+  if (hi <= lo){ lo = e.min; hi = e.max > lo ? e.max : lo + 1; }
+  const pivReal = e.piv, pad = (hi - lo) * .08;
+  const piv = pad > 0 ? Math.min(Math.max(pivReal, lo + pad), hi - pad) : pivReal;
+  return {lo, piv, hi, pivReal, tipo: e.tipo,
+          tonos: rampa(ind.dir),
+          q: e.q, ord: null, min: e.min, max: e.max,
+          recorte: e.min < lo || e.max > hi, n: e.n};
+}
+
 /* Posición 0-1 de un valor sobre la rampa, con el pivote clavado en el 0,5:
    es la misma curva que arma `expresionColor` para el mapa, así que el chip del
    tooltip, la miniatura, la barra del comparativo y el polígono no pueden
@@ -484,6 +604,24 @@ function percentil(ord, v){
   let lo = 0, hi = ord.length;
   while (lo < hi){ const md = (lo + hi) >> 1; if (ord[md] < v) lo = md + 1; else hi = md; }
   return lo / ord.length;
+}
+/* ★ EL PERCENTIL DE UNA MANZANA, SIN TENER LAS 25.698 AL LADO.
+   Antes `percentil()` buscaba el valor dentro del arreglo ordenado completo,
+   que estaba en memoria porque se bajaban todos los datos. Con teselas el
+   navegador sólo ve las de la pantalla, así que la distribución llega
+   precalculada como una rejilla de 51 cuantiles (`mz_stats.json`) y el
+   percentil se interpola entre los dos cortes que rodean al valor.
+   Verificado contra el cálculo exacto: el error máximo es de 1 punto. */
+function percentilRejilla(q, v){
+  if (!q || !q.length || v === null || !isFinite(v)) return null;
+  if (v <= q[0]) return 0;
+  if (v >= q[q.length - 1]) return 1;
+  let lo = 0, hi = q.length - 1;
+  while (lo < hi){ const md = (lo + hi) >> 1; if (q[md] < v) lo = md + 1; else hi = md; }
+  if (lo === 0) return 0;
+  const a = q[lo - 1], b = q[lo], paso = 1 / (q.length - 1);
+  const f = b > a ? (v - a) / (b - a) : 0;
+  return (lo - 1 + f) * paso;
 }
 /* Expresión de color para MapLibre: se construye el degradé con paradas
    equiespaciadas a cada lado del pivote, que es como se comporta un
@@ -558,13 +696,22 @@ function estiloBase(oscuro){
     },
     layers: [
       {id: "fondo", type: "background",
-       paint: {"background-color": oscuro ? "#0b1318" : "#f2efe8"}},
+       paint: {"background-color": oscuro ? "#12181c" : "#eeebe1"}},
       raster("base_claro", BASE.claro, oscuro ? "none" : "visible", .92),
       raster("base_oscuro", BASE.oscuro, oscuro ? "visible" : "none", .78),
     ]
   };
 }
 try {
+  /* El protocolo `pmtiles://` se registra ANTES de construir el mapa: si una
+     fuente lo usa y el protocolo no está, MapLibre falla al resolverla y la
+     capa queda muda sin error visible. GitHub Pages responde `Accept-Ranges:
+     bytes` (verificado con un 206), que es lo que hace que el navegador pida
+     sólo el pedazo del archivo que necesita en vez de los 11,5 MB. */
+  if (window.pmtiles && !maplibregl.__pm){
+    maplibregl.addProtocol("pmtiles", new pmtiles.Protocol().tile);
+    maplibregl.__pm = 1;
+  }
   map = new maplibregl.Map({
     container: "map",
     style: estiloBase(esOscuro()),
@@ -624,6 +771,10 @@ function cuandoListo(fn){
 
 /* bbox de cualquier geometría GeoJSON, sin suponer si es Polygon o MultiPolygon:
    se baja hasta encontrar pares [lon,lat]. */
+/* URL absoluta del archivo de teselas. Tiene que ser absoluta porque el
+   protocolo `pmtiles://` no resuelve rutas relativas al documento. */
+function urlPM(){ return new URL("datos/manzanas.pmtiles", location.href).href; }
+
 function bboxDe(coords){
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   (function rec(a){
@@ -663,8 +814,15 @@ Promise.all([
   fetch("datos/municipios.geojson").then(r => r.json()),
   fetch("datos/region.geojson").then(r => r.json()),
   fetch("datos/mini.json").then(r => r.json()),
-]).then(([cat, mun, fis, gmun, greg, mini]) => {
+]).then(async ([cat, mun, fis, gmun, greg, mini]) => {
   CAT = cat; MUN = mun; FIS = fis; MINI = mini;
+  /* Las estadísticas del nivel manzana (10 KB gzip) son lo que reemplaza a los
+     24,1 MB de datos crudos: con teselas el cliente ya no puede calcular
+     cuantiles sobre todas las manzanas porque sólo ve las de la pantalla.
+     Se piden DESPUÉS del catálogo porque hasta acá no se sabe si este tablero
+     tiene nivel manzana — el municipal no lo tiene y no debe pedir nada. */
+  if (CAT.niveles && CAT.niveles.manzana)
+    MZS = await fetch("datos/mz_stats.json").then(r => r.json()).catch(() => null);
   anio_i = FIS.anios.length - 1;
   MUN.forEach(m => { m.geom = gmun.features.find(f => f.properties.sigep === m.sigep); });
 
@@ -689,7 +847,7 @@ Promise.all([
   else
     anioSeg.style.display = "none";
   elegirCategoria(CAT.grupos[0].key);
-  document.getElementById("cober").textContent = CAT.niveles.municipio.cobertura;
+  actualizarCobertura();
   document.body.setAttribute("data-listo", JSON.stringify({
     grupos: CAT.grupos.length,
     indicadores: CAT.grupos.reduce((a, g) => a + g.indicadores.length, 0),
@@ -721,32 +879,50 @@ Promise.all([
     // nivel manzana se afloja, porque ahí la calle de al lado es justamente el
     // dato que le falta al lector para ubicarse.
     nuevaCapa({id: "mun-fill", type: "fill", source: "mun",
-      paint: {"fill-color": SIN_DATO.claro, "fill-opacity": OPACIDAD.mun}});
+      paint: {"fill-color": SIN_DATO.claro,
+              "fill-opacity": hayManzana() ? fundido(opacidades().mun, 0) : opacidades().mun}});
+    /* ★ EL BORDE MUNICIPAL SOBREVIVE AL RELLENO. Cuando el coroplético
+       municipal se apaga, el contorno se queda a media tinta hasta bastante
+       más arriba: es lo que evita que al bajar a manzana se pierda la
+       referencia de en qué municipio estás. Misma solución que usa el tablero
+       de desarrollo infantil, donde el relleno se va en una banda angosta y el
+       borde aguanta dos niveles más. */
     nuevaCapa({id: "mun-line", type: "line", source: "mun",
-      paint: {"line-color": esOscuro() ? "#0b1318" : "#ffffff",
-              "line-width": 1.1, "line-opacity": .55}});
+      paint: {"line-color": esOscuro() ? "#12181c" : "#ffffff",
+              "line-width": ["interpolate", ["linear"], ["zoom"], Z0, 1.1, Z1, 1.6],
+              "line-opacity": hayManzana()
+                ? ["interpolate", ["linear"], ["zoom"], Z0, .55, Z1, .4, 15.5, 0] : .55}});
     nuevaCapa({id: "mun-sel", type: "line", source: "mun",
-      paint: {"line-color": "#ee9b00", "line-width": 2.4},
+      paint: {"line-color": SENAL, "line-width": 2.4},
       filter: ["==", ["get", "sigep"], ""]});
-    nuevaFuente("mz", {type: "geojson", data: {type: "FeatureCollection", features: []}});
-    nuevaCapa({id: "mz-fill", type: "fill", source: "mz",
-      paint: {"fill-color": SIN_DATO.claro, "fill-opacity": 0}, layout: {visibility: "none"}});
-    nuevaCapa({id: "mz-line", type: "line", source: "mz",
-      paint: {"line-color": esOscuro() ? "#0b1318" : "#ffffff",
-              "line-width": ["interpolate", ["linear"], ["zoom"], 11, .15, 15, .7],
-              "line-opacity": .3},
-      layout: {visibility: "none"}});
+    /* ★ TESELAS VECTORIALES, NO GeoJSON. Antes acá entraba una colección de
+       38.892 polígonos con un único campo `v` que había que REESCRIBIR entero
+       en cada cambio de indicador: `setData()` reserializaba 12,1 MB y
+       MapLibre reteselaba todo el nivel por cambiar un color.
+       Ahora los 59 indicadores viajan como ATRIBUTOS dentro de la tesela, el
+       navegador baja sólo el pedazo que mira, y cambiar de indicador es
+       cambiar la expresión de color. Ver `scripts/generar_pmtiles.py`. */
+    if (hayManzana()){
+      nuevaFuente("mz", {type: "vector", url: "pmtiles://" + urlPM(),
+                         minzoom: 12, maxzoom: 14});
+      nuevaCapa({id: "mz-fill", type: "fill", source: "mz", "source-layer": "manzanas",
+        minzoom: Z0,
+        paint: {"fill-color": SIN_DATO.claro,
+                "fill-opacity": fundido(0, opacidades().mz)}});
+      nuevaCapa({id: "mz-line", type: "line", source: "mz", "source-layer": "manzanas",
+        minzoom: Z0,
+        paint: {"line-color": esOscuro() ? "#12181c" : "#ffffff",
+                "line-width": ["interpolate", ["linear"], ["zoom"], 12, .15, 15, .7],
+                "line-opacity": ["interpolate", ["linear"], ["zoom"], Z0, 0, Z1, .3]}});
+    }
     encuadrar();
     interacciones();
+    vigilarZoom();            // el nivel es función del zoom: hay que escucharlo
     pintar();                 // el panel ya eligió indicador; acá recién hay capas
-    // Las manzanas se bajan EN SEGUNDO PLANO apenas el mapa está en pie. Son
-    // 4,2 MB comprimidos: esperarlos recién al apretar el botón hacía que el
-    // cambio de nivel se sintiera trabado. Cuando llegan, si el usuario ya
-    // estaba en manzana, se enganchan solas.
-    setTimeout(() => cargarManzanas().then(() => {
-      aplicarNivelAlMapa();
-      if (nivel === "manzana") pintar();
-    }), 1200);
+    /* Ya no hay nada que precargar. Antes acá se bajaban los nueve pares
+       geo+dat en segundo plano —24,1 MB descomprimidos— para que el botón de
+       nivel no se sintiera trabado. Sin botón y con teselas, MapLibre pide lo
+       que entra en pantalla cuando el zoom lo pide. */
   });
 });
 
@@ -868,10 +1044,11 @@ function elegirIndicador(key){
   marcarActivo();
   actualizarSubtitulo();
 
-  // El toggle de manzana se apaga cuando el indicador no baja, y se explica.
-  const bMz = document.querySelector('#niv button[data-n="manzana"]');
-  bMz.disabled = !i.k_mz;
-  if (!i.k_mz && nivel === "manzana") cambiarNivel("municipio");
+  /* Ya no hay botón que apagar: si el indicador no baja de nivel y el zoom
+     está abajo, la capa de manzanas queda sin color y el nivel lógico vuelve
+     a municipio. En el tablero de manzana esto no se dispara nunca —los 59
+     tienen los dos niveles— pero la guarda no cuesta nada. */
+  if (!i.k_mz && nivel === "manzana") nivel = "municipio";
 
   document.getElementById("anios").classList.toggle(
     "on", i.fuente === "fiscal" && ANIO === "2024");
@@ -963,46 +1140,46 @@ function actualizarSubtitulo(){
     : `${n} de ${N} con serie 2012 · los demás quedan apagados`;
 }
 
-/* ── NIVEL ───────────────────────────────────────────────────────────────── */
-document.querySelectorAll("#niv button").forEach(b =>
-  b.onclick = () => { if (!b.disabled) cambiarNivel(b.dataset.n); });
+/* ── NIVEL: LO DECIDE EL ZOOM, NO UN BOTÓN ───────────────────────────────
+   El conmutador se fue. `nivel` dejó de ser algo que el usuario cambia y pasó
+   a ser una FUNCIÓN del zoom: cruzando ZC, la leyenda, el panel y el tooltip
+   pasan a hablar de manzanas. El fundido de los rellenos lo hace MapLibre solo
+   con expresiones de zoom, así que acá no hay nada que animar — sólo que
+   redibujar lo que está fuera del mapa cuando el nivel efectivo cambia. */
+function nivelDeZoom(z){
+  return hayManzana() && z >= ZC ? "manzana" : "municipio";
+}
+function vigilarZoom(){
+  if (!map) return;
+  const revisar = () => {
+    const n = nivelDeZoom(map.getZoom());
+    if (n === nivel) return;
+    nivel = n;
+    // el indicador puede no existir en el nivel nuevo (en el tablero de
+    // manzana no pasa nunca —los 59 están en los dos—, pero la guarda queda
+    // por si algún día entra uno que sólo viva arriba)
+    if (ind_actual && !disponible(ind_actual)){
+      const alt = cat_actual.indicadores.find(disponible);
+      if (alt) return elegirIndicador(alt.key);
+    }
+    actualizarCobertura();
+    montarIndicadores();
+    pintar();
+  };
+  map.on("zoomend", revisar);
+  map.on("moveend", revisar);
+}
+function actualizarCobertura(){
+  const el = document.getElementById("cober");
+  if (el && CAT.niveles[nivel]) el.textContent = CAT.niveles[nivel].cobertura;
+}
 
-async function cambiarNivel(n){
-  if (n === nivel) return;
-  nivel = n;
-  document.querySelectorAll("#niv button").forEach(b => b.classList.toggle("on", b.dataset.n === n));
-  document.getElementById("cober").textContent = CAT.niveles[n].cobertura;
-  if (n === "manzana") await cargarManzanas();
-  aplicarNivelAlMapa();
-  // El botón sólo te lleva al otro lado de la banda de fundido; el cruce visual
-  // lo hace el zoom. Mirar 38.892 manzanas desde el encuadre regional es una
-  // mancha, no un mapa.
-  if (map){
-    if (n === "manzana" && map.getZoom() < Z1) map.easeTo({zoom: Z1 + .3, duration: 900});
-    if (n === "municipio" && map.getZoom() > Z0) map.easeTo({zoom: Z0 - .4, duration: 900});
-  }
-  // el indicador puede no existir en el nivel nuevo: se busca su par
-  if (ind_actual && !disponible(ind_actual)){
-    const par = ind_actual.par_manzana || ind_actual.par_municipal;
-    const dest = par && buscarPorClave(par.key);
-    if (dest){ elegirCategoriaDe(dest); elegirIndicador(dest.key); return; }
-    const alt = cat_actual.indicadores.find(disponible);
-    if (alt){ elegirIndicador(alt.key); return; }
-  }
-  montarIndicadores();
-  pintar();
-}
-/* Ajusta las capas al nivel activo. Con manzanas cargadas, ambas quedan visibles
-   y el fundido lo maneja el zoom; sin ellas, el municipio va sólido. */
-function aplicarNivelAlMapa(){
-  if (!map || !map.getSource("mz")) return;
-  const hayMz = !!mzTodas && nivel === "manzana";
-  map.setLayoutProperty("mz-fill", "visibility", hayMz ? "visible" : "none");
-  map.setLayoutProperty("mz-line", "visibility", hayMz ? "visible" : "none");
-  map.setPaintProperty("mun-fill", "fill-opacity",
-    hayMz ? fundido(OPACIDAD.mun, 0) : OPACIDAD.mun);
-  if (hayMz) map.setPaintProperty("mz-fill", "fill-opacity", fundido(0, OPACIDAD.mz));
-}
+/* `cambiarNivel`, `aplicarNivelAlMapa` y `cargarManzanas` se eliminaron con el
+   conmutador. La carga perezosa de los nueve pares geo+dat (24,1 MB que había
+   que bajar y parsear enteros para ver un indicador) la reemplaza el protocolo
+   de teselas: MapLibre pide las teselas del viewport y nada más.
+   La visibilidad de cada capa la resuelven `minzoom` y las expresiones de
+   `fill-opacity` declaradas al montarlas. */
 
 function buscarPorClave(k){
   for (const g of CAT.grupos)
@@ -1017,30 +1194,6 @@ function elegirCategoriaDe(ind){
     document.querySelector("#cat-btn .cn").textContent = g.label;
     montarIndicadores();
   }
-}
-
-/* Carga perezosa: 4,2 MB comprimidos en total, así que se bajan los nueve de
-   una vez la primera vez que se entra al nivel manzana, con barra de progreso.
-   Cargarlos por municipio al entrar a su bbox daba saltos al panear. */
-async function cargarManzanas(){
-  if (mzTodas) return;
-  const slugs = MUN.map(m => m.nombre.toLowerCase()
-    .normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ /g, "_"));
-  const barra = document.querySelector("#carga i");
-  let hechos = 0;
-  const partes = await Promise.all(slugs.map(async (s, k) => {
-    const [geo, dat] = await Promise.all([
-      fetch(`datos/geo_${s}.geojson`).then(r => r.json()),
-      fetch(`datos/dat_${s}.json`).then(r => r.json())
-    ]);
-    mzCargadas[MUN[k].sigep] = dat;
-    geo.features.forEach(f => { f.properties.s = MUN[k].sigep; });
-    hechos++; barra.style.width = (100 * hechos / slugs.length) + "%";
-    return geo.features;
-  }));
-  mzTodas = {type: "FeatureCollection", features: partes.flat()};
-  if (map && map.getSource("mz")) map.getSource("mz").setData(mzTodas);
-  setTimeout(() => { barra.style.width = "0"; }, 400);
 }
 
 /* ── VALORES ─────────────────────────────────────────────────────────────── */
@@ -1118,41 +1271,38 @@ function pintar(){
      todo quedaba del gris de "sin dato", sin ningún error. */
   const conMapa = !!map && !!map.getSource("mun");
   if (conMapa){
-    map.setPaintProperty("fondo", "background-color", esOscuro() ? "#0b1318" : "#f2efe8");
+    map.setPaintProperty("fondo", "background-color", esOscuro() ? "#12181c" : "#eeebe1");
   }
 
   let e = null;
+  /* El coroplético municipal se pinta SIEMPRE, aunque el nivel lógico sea
+     manzana: durante el fundido las dos capas conviven en pantalla y la de
+     abajo no puede quedar del gris de "sin dato". */
+  if (conMapa && map.getSource("mun")){
+    const vm = MUN.map(m => valorMunicipal(m, i));
+    const em = escala(vm, MUN.map(pesoMunicipal), i, "municipio");
+    const src = map.getSource("mun"), d = src._data;
+    d.features.forEach(f => {
+      const m = MUN.find(x => x.sigep === f.properties.sigep);
+      f.properties.v = m ? valorMunicipal(m, i) : null;
+    });
+    src.setData(d);
+    if (em) map.setPaintProperty("mun-fill", "fill-color", expresionColor(em, "v"));
+  }
+
   if (nivel === "municipio"){
     const vals = MUN.map(m => valorMunicipal(m, i));
     const pes = MUN.map(pesoMunicipal);
-    e = escala(vals, pes, i, "municipio");
-    if (conMapa){
-      const src = map.getSource("mun");
-      const d = src._data;
-      d.features.forEach(f => {
-        const m = MUN.find(x => x.sigep === f.properties.sigep);
-        f.properties.v = m ? valorMunicipal(m, i) : null;
-      });
-      src.setData(d);
-      map.setPaintProperty("mun-fill", "fill-color", expresionColor(e, "v"));
-    }
+    e = escala(vals, pes, i, "municipio");   // ya pintado arriba
   } else {
-    const vals = [], pes = [];
-    for (const s in mzCargadas){
-      const d = mzCargadas[s], col = d.cols[i.k_mz], p = d.cols.personas;
-      if (!col) continue;
-      for (let k = 0; k < d.n; k++){ vals.push(col[k]); pes.push(p ? p[k] : 0); }
-    }
-    e = escala(vals, pes, i, "manzana");
-    if (mzTodas && map && map.getSource("mz")){
-      mzTodas.features.forEach(f => {
-        const d = mzCargadas[f.properties.s];
-        const col = d && d.cols[i.k_mz];
-        f.properties.v = col ? col[f.properties.i] : null;
-      });
-      map.getSource("mz").setData(mzTodas);
-      map.setPaintProperty("mz-fill", "fill-color", expresionColor(e, "v"));
-    }
+    /* ★ ACÁ ESTABA EL COSTO. Antes este bloque recorría los 38.892 polígonos
+       reescribiendo `properties.v` y llamaba `setData()`: 12,1 MB
+       reserializados y todo el nivel reteselado por cambiar un color.
+       Ahora el valor ya vive en la tesela con el nombre del indicador, así que
+       basta apuntar la expresión de color a otro atributo. */
+    e = escalaManzana(i);
+    if (conMapa && map.getLayer("mz-fill"))
+      map.setPaintProperty("mz-fill", "fill-color", expresionColor(e, i.k_mz));
   }
   ESC = e;
   termometro(e, i);
@@ -1227,7 +1377,7 @@ function comparativo(e, ind){
       const x1 = x(f.v), txt = fmtM(f.v, ind);
       const tx = Math.min(x1 + 1.4, W - anchoTexto(txt));
       s += `<rect x="${LX}" y="${y + 1}" width="${Math.max(.6, x1 - LX)}" height="6"
-              fill="${tonoDe(e, f.v)}" ${sel_ ? 'stroke="#ee9b00" stroke-width="0.8"' : ""}/>`;
+              fill="${tonoDe(e, f.v)}" ${sel_ ? `stroke="${SENAL}" stroke-width="0.8"` : ""}/>`;
       s += `<text x="${tx}" y="${y + 5.4}" class="cmp-v">${txt}</text>`;
     } else {
       s += `<text x="${LX}" y="${y + 5.4}" class="cmp-v">s/d</text>`;
@@ -1257,6 +1407,80 @@ function comparativo(e, ind){
 
    Se dibuja a mano en SVG, igual que el comparativo y por la misma razón: son
    veinte puntos y una librería de gráficos costaría 200 KB por nada. */
+/* ── DISTRIBUCIÓN DENTRO DE CADA MUNICIPIO ───────────────────────────────
+   Lo que las barras de arriba NO pueden mostrar. El comparativo ordena los
+   nueve promedios; esto abre cada promedio y enseña de qué manzanas está hecho.
+
+   ★ POR QUÉ ESTÁ ACÁ, medido sobre las 38.892 manzanas: en 36 de los 59
+     indicadores la brecha DENTRO de un municipio (p90−p10) es mayor que todo
+     el rango ENTRE los nueve. O sea que en seis de cada diez casos el
+     comparativo está retratando la MENOR de las dos desigualdades.
+     El caso que lo resume: Santa Cruz de la Sierra tiene 63,9% de
+     alcantarillado con su decil de abajo en 0% y el de arriba en 100% — el
+     promedio municipal no describe a casi nadie.
+     Antes, este lugar del panel repetía nombre, valor y orden de las barras.
+
+   El eje es PROPIO y va rotulado: las distribuciones de manzana son mucho más
+   anchas que el rango de los nueve promedios, así que forzarlas al eje de
+   arriba las recortaría. El color sí es compartido — sale de la escala del
+   nivel manzana, que es la que pinta el mapa cuando bajás. */
+function distribucion(ind){
+  if (!MZS || !ind.k_mz) return "";
+  const st = MZS[ind.k_mz];
+  if (!st || !st.dist) return "";
+  const eMz = escalaManzana(ind);
+  /* ⚠️ EL MISMO ORDEN QUE EL COMPARATIVO, no el propio. Ordenar por mediana
+     parecía lo natural, pero deja las filas de arriba y las de abajo
+     desalineadas y entonces hay que buscar cada municipio dos veces: se pierde
+     justo la lectura que motiva la tira —cuánto arriba, qué tan parejo
+     abajo—. Con el orden compartido, cada fila se lee en vertical. */
+  const filas = MUN.map(m => ({m, d: st.dist[m.sigep], v: valorParaMini(m, ind)}))
+    .filter(f => f.d)
+    .sort((a, b) => (b.v === null ? -Infinity : b.v) - (a.v === null ? -Infinity : a.v));
+  if (filas.length < 2) return "";
+
+  const lo = Math.min(...filas.map(f => f.d.p10));
+  const hi = Math.max(...filas.map(f => f.d.p90));
+  const rango = (hi - lo) || 1;
+  const H = 11.5, W = 100, LX = 35, VX = 82;
+  const alto = filas.length * H + 11;
+  const x = v => LX + ((v - lo) / rango) * (VX - LX);
+
+  let s = "";
+  filas.forEach((f, k) => {
+    const y = k * H + 3, d = f.d, sel_ = f.m.sigep === sel;
+    const corto = f.m.nombre.length > 16 ? f.m.nombre.slice(0, 15) + "…" : f.m.nombre;
+    s += `<text x="0" y="${y + 5.4}" class="cmp-n${sel_ ? " sel" : ""}">${corto}</text>`;
+    const x10 = x(d.p10), x25 = x(d.p25), x50 = x(d.p50), x75 = x(d.p75), x90 = x(d.p90);
+    // bigote p10–p90: el 80% central de las manzanas del municipio
+    s += `<line x1="${x10}" y1="${y + 4}" x2="${x90}" y2="${y + 4}" class="ds-w"/>`;
+    s += `<line x1="${x10}" y1="${y + 1.8}" x2="${x10}" y2="${y + 6.2}" class="ds-w"/>`;
+    s += `<line x1="${x90}" y1="${y + 1.8}" x2="${x90}" y2="${y + 6.2}" class="ds-w"/>`;
+    // caja p25–p75, con el tono que le toca a la mediana en el mapa
+    s += `<rect x="${x25}" y="${y + 1.2}" width="${Math.max(.5, x75 - x25)}" height="5.6"
+            rx="0.6" fill="${tonoDe(eMz, d.p50)}" fill-opacity="${sel_ ? .95 : .72}"
+            ${sel_ ? `stroke="${SENAL}" stroke-width="0.7"` : ""}/>`;
+    s += `<line x1="${x50}" y1="${y + .6}" x2="${x50}" y2="${y + 7.4}" class="ds-med"/>`;
+    // la brecha es el dato nuevo: cuánto separa al decil de arriba del de abajo
+    s += `<text x="${W}" y="${y + 5.4}" class="ds-g" text-anchor="end">${
+            nf(d.p90 - d.p10, 0)}<tspan class="ds-u"> ${unidadDif(ind.unit)}</tspan></text>`;
+    /* Con las tarjetas fuera, el panel se quedaba sin manera de elegir un
+       municipio sin ir al mapa. La fila entera es el blanco. */
+    s += `<rect x="0" y="${y}" width="${W}" height="${H - .5}" class="ds-hit"
+            data-s="${f.m.sigep}"><title>${f.m.nombre}: la mitad de sus manzanas está entre ${
+            fmtM(d.p25, ind)} y ${fmtM(d.p75, ind)}</title></rect>`;
+  });
+  // los extremos del eje, porque no es el mismo que el de las barras
+  const yb = filas.length * H + 8;
+  s += `<text x="${LX}" y="${yb}" class="ds-ax">${fmtM(lo, ind)}</text>`
+     + `<text x="${VX}" y="${yb}" class="ds-ax" text-anchor="end">${fmtM(hi, ind)}</text>`;
+  return `<div class="cmp-t">Cómo se reparte dentro de cada uno<span>${
+      nf(st.esc.n, 0)} manzanas con ficha</span></div>
+    <svg class="cmp" viewBox="0 0 ${W} ${alto}" preserveAspectRatio="xMidYMin meet">${s}</svg>
+    <div class="ds-ley"><span class="ds-k1"></span>80% central de las manzanas
+      <span class="ds-k2"></span>mitad más común <span class="ds-k3"></span>mediana</div>`;
+}
+
 function serieDe(sigep, ind){
   const e = FIS.entidades[sigep];
   const s = e && e.s && e.s[ind.k_mun];
@@ -1356,6 +1580,10 @@ function serieSVG(m, ind){
 function ficha(e, i){
   const g = document.getElementById("kgrid");
   document.getElementById("cmp").innerHTML = comparativo(e, i);
+  /* La distribución va SIEMPRE que el indicador baje a manzana: es la lectura
+     que el panel no tenía. Con un municipio elegido queda resaltado, así que
+     sirve igual en los dos estados. */
+  document.getElementById("dist").innerHTML = distribucion(i);
   if (sel){
     const m = MUN.find(x => x.sigep === sel);
     /* La serie es la trayectoria de UN municipio, así que sólo aparece con uno
@@ -1399,17 +1627,30 @@ function ficha(e, i){
     document.getElementById("d-sub").textContent =
       `${MUN.length} municipios · ${nf(pobR, 0)} personas`
       + (ANIO === "2012" ? " en 2012" : ANIO === "cambio" ? " en 2024" : "");
-    g.innerHTML = MUN.slice().sort((a,b) => {
-      const va = valorMunicipal(a, i), vb = valorMunicipal(b, i);
-      return (vb === null ? -1e9 : vb) - (va === null ? -1e9 : va);
-    }).map((m, n) => {
-      const v = valorMunicipal(m, i);
-      return `<div class="kpi" data-s="${m.sigep}" style="--d:${Math.min(n,14)*14}ms">
-        <div class="k-l">${m.nombre}</div><div class="k-v">${mudo(i) ? "s/d" : fmtM(v, i)}</div>
-        <div class="k-c"><span>${m.ambito}</span><span>${nf(m.manzanas,0)} manzanas</span></div></div>`;
-    }).join("");
+    /* ⚠️ ACÁ HABÍA NUEVE TARJETAS QUE REPETÍAN LAS BARRAS: mismo municipio,
+       mismo valor, mismo orden, y de nuevo el nombre. Lo único que agregaban
+       era el ámbito y el conteo de manzanas.
+       Con la distribución arriba ya no hacen falta: si el indicador baja a
+       manzana, este lugar lo ocupa una lectura nueva. Si NO baja (los 30
+       fiscales, y todo el tablero municipal), las tarjetas siguen siendo la
+       forma de recorrer los nueve, así que se conservan para ese caso. */
+    if (MZS && i.k_mz && MZS[i.k_mz]){
+      g.innerHTML = "";
+    } else {
+      g.innerHTML = MUN.slice().sort((a,b) => {
+        const va = valorMunicipal(a, i), vb = valorMunicipal(b, i);
+        return (vb === null ? -1e9 : vb) - (va === null ? -1e9 : va);
+      }).map((m, n) => {
+        const v = valorMunicipal(m, i);
+        return `<div class="kpi" data-s="${m.sigep}" style="--d:${Math.min(n,14)*14}ms">
+          <div class="k-l">${m.nombre}</div><div class="k-v">${mudo(i) ? "s/d" : fmtM(v, i)}</div>
+          <div class="k-c"><span>${m.ambito}</span><span>${nf(m.manzanas,0)} manzanas</span></div></div>`;
+      }).join("");
+    }
   }
   g.querySelectorAll(".kpi[data-s]").forEach(el => el.onclick = () => seleccionar(el.dataset.s));
+  document.querySelectorAll("#dist .ds-hit").forEach(el =>
+    el.onclick = () => seleccionar(el.dataset.s));
   g.querySelectorAll(".kpi[data-k]").forEach(el => el.onclick = () => elegirIndicador(el.dataset.k));
   /* Clicar un año del gráfico hace lo mismo que su botón de gestión. Con eso
      cada valor de la serie se alcanza SIN hover —al fijar la gestión, la cifra
@@ -1447,6 +1688,11 @@ function seleccionar(s){
 /* Los nombres de localidad vienen del INE en MAYÚSCULAS. Las partículas van en
    minúscula salvo al principio: "SAN MIGUEL DE LOS JUNOS" → "San Miguel de los
    Junos", no "San Miguel De Los Junos". */
+/* El slug del municipio es la clave con que la tesela dice a cuál pertenece
+   cada manzana (`generar_pmtiles.py` lo toma del nombre de archivo). */
+const slugDe = s => s.toLowerCase().normalize("NFD")
+  .replace(/[̀-ͯ]/g, "").replace(/ /g, "_");
+
 const PARTICULAS = new Set(["de","del","la","las","los","el","y","en"]);
 function tituloCaso(s){
   if (!s) return "";
@@ -1470,37 +1716,38 @@ function tooltipHTML(p, esMz){
   const i = ind_actual;
   if (!i) return "";
   const e = ESC;
-  const v = p.v === undefined || p.v === null ? null : +p.v;
+  /* En el nivel manzana el valor viaja con el NOMBRE del indicador (así es como
+     el mapa lo pinta, con `["get", clave]`); en el municipal sigue siendo `v`,
+     que es lo que escribe `pintar()` sobre el GeoJSON de los nueve. */
+  const bruto = esMz ? p[i.k_mz] : p.v;
+  const v = bruto === undefined || bruto === null ? null : +bruto;
   const hay = v !== null && isFinite(v);
 
   let nom, sub, filas = "", nota = "";
 
   if (esMz){
-    const m = MUN.find(x => x.sigep === p.s), d = mzCargadas[p.s];
-    const k = p.i;
-    const loc = d && d.nombre ? tituloCaso(d.nombre[k]) : "";
-    const pers = d && d.cols.personas ? d.cols.personas[k] : null;
+    /* Los datos ya no salen de un arreglo paralelo en memoria: vienen DENTRO
+       de la tesela, con el nombre del indicador como atributo. `s` es el slug
+       del municipio y `nom` la localidad tal como la escribe el INE. */
+    const m = MUN.find(x => slugDe(x.nombre) === p.s);
+    const loc = p.nom ? tituloCaso(p.nom) : "";
     nom = loc || "Manzana";
     // "Manzana en Porongo", no "Manzana · en Porongo": el municipio completa la
     // frase, no es otro dato de la lista.
     let cab = "Manzana";
     if (loc && m && loc.toLowerCase() !== m.nombre.toLowerCase()) cab += " en " + m.nombre;
-    const bits = [cab];
-    if (pers !== null && isFinite(pers)) bits.push(nf(Math.round(pers), 0) + " hab.");
-    sub = bits.join(" · ");
+    sub = cab;
 
     // Referencia natural de una manzana: el agregado URBANO de su municipio, no
     // la cifra municipal del INE, que incluye lo rural y no es comparable.
     const ref = m && m.urbano ? m.urbano[i.k_mz] : null;
     if (hay && ref !== null && ref !== undefined && isFinite(ref))
       filas += `<div class="pr"><span>urbano de ${m.nombre}</span><span><b>${fmt(ref, i.unit)}</b> ${flecha(v - ref, i.unit)}</span></div>`;
-    const q = hay && e ? percentil(e.ord, v) : null;
+    const q = hay && e ? percentilRejilla(e.q, v) : null;
     if (q !== null)
       filas += `<div class="pr"><span>en la región</span><span>supera al <b>${nf(Math.round(q * 100), 0)}%</b> de las manzanas</span></div>`;
-    if (!hay){
-      const cod = d && d.codigo ? d.codigo[k] : "";
-      nota = `Sin ficha. El INE no publica los datos de las manzanas más chicas, por privacidad.${cod ? ` <b>${cod}</b>` : ""}`;
-    }
+    if (!hay)
+      nota = "Sin ficha. El INE no publica los datos de las manzanas más chicas, por privacidad.";
   } else {
     const m = MUN.find(x => x.sigep === p.sigep);
     if (!m) return "";
@@ -1572,9 +1819,12 @@ function interacciones(){
     mostrarPop(html, ev.originalEvent.clientX, ev.originalEvent.clientY);
   };
   map.on("mousemove", "mun-fill", ev => { if (nivel === "municipio") mostrar(ev, false); });
-  map.on("mousemove", "mz-fill", ev => { if (nivel === "manzana") mostrar(ev, true); });
   map.on("mouseleave", "mun-fill", ocultarPop);
-  map.on("mouseleave", "mz-fill", ocultarPop);
+  // la capa de manzanas sólo existe si este tablero tiene el nivel
+  if (map.getLayer("mz-fill")){
+    map.on("mousemove", "mz-fill", ev => { if (nivel === "manzana") mostrar(ev, true); });
+    map.on("mouseleave", "mz-fill", ocultarPop);
+  }
   // Arrastrar el mapa con el tooltip pegado al cursor lo deja flotando sobre un
   // polígono que ya no es el de abajo.
   map.on("dragstart", ocultarPop);
