@@ -158,6 +158,25 @@ UNIVERSOS_CORREGIDOS = {
 # tarjeta puestas una debajo de otra se leen como si distinguieran algo.
 NORMALIZA = re.compile(r"^medido sobre ", re.I)
 
+# ── ⛔ LO QUE `precisar_atlas.py` YA CORRIGIÓ NO SE PISA ──────────────────────
+# Este script reescribe `desc` y `universo` desde el tablero metropolitano, y
+# `precisar_atlas.py` corrige después lo que el metropolitano tenía mal para el
+# país (el índice de juventud describiendo otra estadística, ocho universos que
+# no eran los del motor). Correrlos en el orden equivocado revertía esas
+# correcciones EN SILENCIO — pasó el 2026-08-27 y se descubrió de casualidad.
+# Un orden que hay que recordar es un orden que se olvida: en vez de documentarlo,
+# este script importa las tablas del otro y las aplica al final. Así los dos se
+# pueden correr en cualquier orden y las veces que haga falta.
+try:
+    import precisar_atlas as _pre
+    CORRIGE_DESC = dict(_pre.DESCRIPCIONES)
+    CORRIGE_UNI = dict(_pre.UNIVERSOS)
+    CORRIGE_ROT = dict(_pre.ROTULOS)
+except Exception as _e:                      # se avisa, no se sigue en silencio
+    CORRIGE_DESC = CORRIGE_UNI = CORRIGE_ROT = {}
+    print(f"  ⚠️ sin precisar_atlas.py ({_e}): las correcciones de precisión NO "
+          "se van a reaplicar y este script las va a pisar.")
+
 # lo que no puede sobrevivir a la nacionalización, para que el chequeo final
 # falle en vez de publicar una frase cruceña en un atlas de Bolivia
 PROHIBIDO = re.compile(
@@ -280,7 +299,18 @@ def main(escribir):
             else:
                 sin_universo.append(k)
 
+    # las correcciones de precisión van AL FINAL, encima de lo heredado
+    reap = 0
+    for g in cat["grupos"]:
+        for ind in g["indicadores"]:
+            k = ind["key"]
+            for tabla, campo in ((CORRIGE_ROT, "label"), (CORRIGE_UNI, "universo"),
+                                 (CORRIGE_DESC, "desc")):
+                if k in tabla and ind.get(campo) != tabla[k]:
+                    ind[campo] = tabla[k]
+                    reap += 1
     print(f"  indicadores recorridos: {n}")
+    print(f"  correcciones de precisión reaplicadas: {reap}")
     print(f"  descripciones reescritas: {len(cambios)}")
     print(f"  sin par en el metropolitano: {len(sin_par)} {sin_par}")
     print(f"  sin universo: {len(sin_universo)} {sin_universo}")
