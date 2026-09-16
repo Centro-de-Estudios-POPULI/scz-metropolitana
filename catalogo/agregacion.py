@@ -76,6 +76,8 @@ UNI_CONTEO = {"hab", "viv", "pers"}
 # ── brechas: se rearman desde sus componentes, que el motor ahora emite ──────
 BRECHAS = {"brecha_alfabetismo", "brecha_edu_superior", "brecha_anios_estudio",
            "brecha_participacion"}
+# sufijos [minuendo, sustraendo] por clave; el resto es mujeres − hombres
+COMP_ORDEN = {"brecha_participacion": ["_hom", "_muj"]}
 
 
 def cargar(anio):
@@ -202,7 +204,14 @@ def main():
                 i["agg"] = "suma"; i.pop("den", None); n["suma"] += 1
             elif k in BRECHAS:
                 i["agg"] = "brecha"
-                i["comp"] = [k + "_muj", k + "_hom"]
+                # ⚠️ EL ORDEN DE LOS COMPONENTES ES EL DEL MOTOR, no una regla
+                #    general. `motor_persona.py` calcula brecha_participacion
+                #    como HOMBRES − mujeres (positiva en 342 de 343) y las otras
+                #    tres como mujeres − hombres. Con [muj, hom] para todas, el
+                #    Atlas rearmaba el país en −15,65 pp sobre un mapa positivo
+                #    (cazado el 2026-09-16). Se declara por clave.
+                i["comp"] = (COMP_ORDEN.get(k) or ["_muj", "_hom"])
+                i["comp"] = [k + i["comp"][0], k + i["comp"][1]]
                 n.setdefault("brecha", 0); n["brecha"] += 1
             elif k in NO_AGREGABLES:
                 i["agg"] = "no"; n["no"] += 1

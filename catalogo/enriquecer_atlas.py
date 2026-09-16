@@ -208,20 +208,23 @@ def laminas():
       formas del mismo dato: acá se explora, allá se descarga listo para pegar
       en un informe. El enlace se arma de la clave, no de una lista a mano.
 
-    ⚠️ NO TODOS TIENEN. La Galería tiene 135 mapas censales y el Atlas 215
-      indicadores: el botón aparece sólo donde hay lámina, y el propio script
-      informa cuántos quedan sin ella para que el hueco sea visible."""
+    ★ LA FICHA DECLARA SU CLAVE (2026-09-16). Antes el vínculo se reconstruía
+      por coincidencia de TAGS —cualquier tag de la ficha podía «ser» la clave—
+      y cambiar un tag rompía los 215 enlaces en silencio. Ahora se lee el
+      campo `clave` de las fichas con `atlas:"censo"` y `modo:"2024"`; el `lam`
+      que se escribe acá es el slug de 2024, y las de 2012 y cambio las
+      resuelve el tablero con `indice_laminas.json` del propio Banco."""
     gal = PROY / "galeria-populi" / "data" / "catalogo"
     if not gal.exists():
         return {}
     por_clave = {}
     for f in sorted(gal.glob("censo-*.json")):
         j = json.loads(f.read_text(encoding="utf-8"))
-        # la ficha declara el PNG que publica; si no lo declara no hay qué enlazar
+        if j.get("atlas") != "censo" or j.get("modo") != "2024" or not j.get("clave"):
+            continue
         if not j.get("imagen"):
             continue
-        for t in j.get("tags", []):
-            por_clave.setdefault(t, j["slug"])
+        por_clave[j["clave"]] = j["slug"]
     return por_clave
 
 
