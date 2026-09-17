@@ -2067,6 +2067,22 @@
    "fuente": "microdato"
   },
   {
+   "k": "tgf",
+   "l": "Tasa global de fecundidad",
+   "u": "hijos",
+   "d": 0,
+   "g": "Salud",
+   "n": "mun",
+   "s": false,
+   "y12": "si",
+   "uni": "mef",
+   "e24": "5·Σ_g (mujeres 15-49 con hulta==1 / mujeres del grupo quinquenal g), calibrada con pob. INE municipal y encogida hacia el dpto (gamma-Poisson)",
+   "e12": "idem, con nacimiento en dic-2011..nov-2012 según P48A/P48B; factor de omisión departamental",
+   "val": null,
+   "nota": "Hijos por mujer que resultan de las tasas de fecundidad por edad del año previo al censo, en mujeres de 15 a 49; método directo del censo (el del INE para 2024), con el denominador calibrado a la población municipal del INE y suavizado hacia el departamento donde hay pocos nacimientos.",
+   "fuente": "microdato"
+  },
+  {
    "k": "pct_madres_adolescentes",
    "l": "Madres adolescentes (15-19)",
    "u": "%",

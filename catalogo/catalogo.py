@@ -407,6 +407,10 @@ A(I("fecundidad", "Hijos por mujer (15-49)", "hijos", 0, G, uni="mef",
     e24="media(p54_hvtot)", e12="media(P46)", val="salud/6"))
 A(I("paridez_media", "Paridez media (12+)", "hijos", 0, G, uni="muj12",
     e24="media(p54_hvtot)", e12="media(P46)", val="salud/6"))
+A(I("tgf", "Tasa global de fecundidad", "hijos", 0, G, uni="mef",
+    e24="5·Σ_g (mujeres 15-49 con hulta==1 / mujeres del grupo quinquenal g), calibrada con pob. INE municipal y encogida hacia el dpto (gamma-Poisson)",
+    e12="idem, con nacimiento en dic-2011..nov-2012 según P48A/P48B; factor de omisión departamental",
+    nota="Hijos por mujer que resultan de las tasas de fecundidad por edad del año previo al censo, en mujeres de 15 a 49; método directo del censo (el del INE para 2024), con el denominador calibrado a la población municipal del INE y suavizado hacia el departamento donde hay pocos nacimientos."))
 A(I("pct_madres_adolescentes", "Madres adolescentes (15-19)", "%", -1, G, uni="mef",
     e24="mujeres 15-19 con al menos un hijo", e12="idem", val="ods_pdes/3.7.2"))
 A(I("pct_hijos_fallecidos", "Hijos fallecidos", "%", -1, G, uni="muj12",

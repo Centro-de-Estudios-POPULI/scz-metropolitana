@@ -107,6 +107,10 @@ COLS24 = ["p25_sexo", "p26_edad", "nivel_edu", "asiste", "p40_lee", "p50_catocu_
           #    · `p59_mef`     → parto calificado con el universo CORRECTO
           "i00", "p41a_nivel", "p41b_curso_act", "p59_mef",
           "condact_19", "p56_edadmad", "p331_idiohab1_cod", "p332_idiohab2_cod",
+          # ★ TGF (2026-09-17): `hulta` = la derivada del INE «hijo nacido vivo en los
+          #   últimos 12 meses» (mujeres que declaran ≥1 hijo). Es el numerador del
+          #   método directo, el mismo que el INE adoptó para el Censo 2024 (Rev. 2025).
+          "hulta",
           # ★ hace falta el filtro de RESIDENCIA explícito: las variables derivadas
           #   del INE (`asiste`, `nivel_edu`, `p50_catocu_13`) ya lo traen incorporado,
           #   pero las preguntas crudas como `p40_lee` no. Sin esto el denominador de
@@ -259,6 +263,7 @@ def _derivar_24(p):
     d["curso_anio"] = p.p41b_curso_act.astype("float32")
     d["desocupado"] = p.condact_19.isin([2, 3])      # cesante o aspirante
     d["edad_madre_1"] = p.p56_edadmad.where(p.p56_edadmad.between(8, 60))
+    d["nac_12m"] = p.hulta == 1                     # hijo nacido vivo en los últimos 12 meses
     d["bilingue"] = p.p332_idiohab2_cod.notna() & (p.p332_idiohab2_cod > 0)
     d["res_otro_mun"] = p.p36_lugres == 2
     for k, c in [("disc_ver", "p42a_ver"), ("disc_oir", "p42b_oir"),
@@ -280,7 +285,7 @@ def cargar_2024():
     #    sigue leyendo la versión anterior y los números no se mueven. Eso fue lo
     #    que mantuvo vivo el bug de `mun_trabaja`. La guarda compara el esquema.
     ESPERADAS = {"idioma", "mun_nac", "mun_res5", "mun_trabaja",
-                 "hogar", "curso_nivel", "curso_anio", "parto_quien"}
+                 "hogar", "curso_nivel", "curso_anio", "parto_quien", "nac_12m"}
     if PARQ.exists():
         cache = pd.read_parquet(PARQ)
         if ESPERADAS <= set(cache.columns):
@@ -309,7 +314,7 @@ def cargar_2012():
     #    sola regla cuesta una corrida entera, y eso empuja a "probar de memoria"
     #    en vez de correr. Misma guarda de esquema que 2024.
     ESPERADAS = {"idioma", "mun_nac", "mun_res5", "desocupado", "hogar",
-                 "nivel_cod", "curso_cod"}
+                 "nivel_cod", "curso_cod", "nac_12m"}
     if PARQ12.exists():
         cache = pd.read_parquet(PARQ12)
         if ESPERADAS <= set(cache.columns):
@@ -368,6 +373,12 @@ def _leer_2012():
     #    daba valores NEGATIVOS en los 343 municipios (mediana −29,9%).
     d["hijos_nac"] = g("P46").where(lambda x: x <= 25)
     d["hijos_viv"] = g("P47").where(lambda x: x <= 25)
+    # ★ TGF: 2012 no trae la derivada HULTA; se reconstruye con la fecha del último
+    #   hijo nacido vivo (P48A mes, P48B año) contra la fecha censal, 21-nov-2012:
+    #   diciembre de 2011 a noviembre de 2012. Verificado que en 2024 la ventana por
+    #   fecha y HULTA coinciden (correlación municipal 0,985).
+    mes_u, an_u = g("P48A"), g("P48B")
+    d["nac_12m"] = ((an_u == 2011) & (mes_u >= 12)) | ((an_u == 2012) & (mes_u <= 11))
     nacl = g("P32A")
     d["nac_aqui"] = nacl == 1
     d["nac_exterior"] = nacl == 3
@@ -415,6 +426,31 @@ def _leer_2012():
         d[k] = np.nan
     return d
 
+
+_POB_INE = pathlib.Path(r"C:\Users\HP\OneDrive\Desktop\Proyectos"
+                        r"\Observatorio de Presupuesto Fiscal Departamental\municipios\_datos\pob_municipal_ine.json")
+# TGF 2012 por departamento, INE Revisión 2020 (Proyección de la población total e
+# indicadores demográficos por departamento 2012-2022, fila 2012, última columna).
+_TGF_INE_2012 = {"01": 3.229, "02": 2.771, "03": 2.977, "04": 2.834, "05": 3.631,
+                 "06": 2.906, "07": 3.089, "08": 4.098, "09": 3.858}
+
+def _omision(anio, pob_censo):
+    """Población INE a mitad de año / población censada residente, por municipio.
+    2024: Rev. 2025 (incluye el ajuste por omisión censal, +4,9 % nacional). 2012: la
+    municipal de la Rev. 2020 redistribuye gente entre municipios (razón p10 0,85 ·
+    p90 1,12, que no es omisión), así que el factor se toma por DEPARTAMENTO.
+    Sin el archivo, factor 1 y aviso: la TGF sale sin calibrar."""
+    if not _POB_INE.exists():
+        print("   ⚠️ sin pob_municipal_ine.json: TGF sin calibrar por omisión", flush=True)
+        return pd.Series(1.0, index=pob_censo.index)
+    j = json.loads(_POB_INE.read_text(encoding="utf-8"))
+    ine = pd.Series({v["cod_ine"]: float(v["medio"][str(anio)]) for v in j.values()})
+    pc = pob_censo.astype(float)
+    if anio == 2012:
+        dep = pc.index.str[:2]
+        r = ine.reindex(pc.index).groupby(dep).sum() / pc.groupby(dep).sum()
+        return pd.Series(dep.map(r).values, index=pc.index)
+    return (ine.reindex(pc.index) / pc).clip(0.85, 1.35).fillna(1.0)
 
 def calcular(d, anio):
     g = d.groupby("cod_ine")
@@ -596,6 +632,69 @@ def calcular(d, anio):
     # indicador legítimo, pero NO es el que el INE publica como paridez media
     m12 = res & d.mujer & (d.edad >= 12) & d.hijos_nac.notna()
     out["paridez_media_12mas"] = d[m12].groupby("cod_ine").hijos_nac.mean()
+    # ★★ TASA GLOBAL DE FECUNDIDAD (2026-09-17). La paridez es un stock de cohortes;
+    #    la TGF es la fecundidad del año: suma de las tasas por grupo quinquenal
+    #    (nacimientos de los últimos 12 meses / mujeres del grupo) × 5, mujeres de
+    #    15-49. Es el método directo, el que el INE adoptó para el Censo 2024 sin
+    #    ajuste P/F (Rev. 2025, doc. metodológico pp. 17-28; verificado: 165.019
+    #    nacimientos en el censo contra 165.718 del INE). Se publica en 15-49 y no en
+    #    12-49 como el INE porque es la convención internacional, es lo comparable con
+    #    2012 (donde no se preguntó a 12-14) y las de 12-14 aportan 0,01.
+    #    Tres decisiones, medidas en investigaciones/fecundidad-municipal/LEEME.md:
+    #    · SIN corrección por no respuesta de la fecha (el método de hijos propios
+    #      mostró que sobrecorrige: la serie censal da 2,20 en 2020 y 1,79 en 2023).
+    #    · DENOMINADOR calibrado con la población municipal del INE (omisión censal,
+    #      mediana +5,6 % en 2024); en 2012 el factor es departamental, porque la
+    #      municipal 2012 del INE redistribuye población entre municipios.
+    #    · ENCOGIMIENTO bayesiano empírico (gamma-Poisson, Marshall 1991) hacia el
+    #      patrón del departamento: 98 municipios tienen menos de 100 nacimientos al
+    #      año y su tasa cruda es ruido; el municipio pesa según sus nacimientos
+    #      esperados (mediana del peso propio 0,90; 0,4-0,6 con 10-20 nacimientos).
+    #    NO usar Brass P/F: con la fecundidad cayendo rápido da 3,2 para 2024.
+    if "nac_12m" in d.columns and d.nac_12m.notna().any():
+        w = d[res & d.mujer & d.edad.between(15, 49)]
+        grp = (w.edad // 5 * 5).astype(int)
+        n_g = w.groupby([w.cod_ine.astype(str), grp], observed=True).size().unstack(fill_value=0)
+        b_g = (w[w.nac_12m.fillna(False)].groupby([w.cod_ine.astype(str)[w.nac_12m.fillna(False)], grp[w.nac_12m.fillna(False)]], observed=True)
+               .size().unstack(fill_value=0).reindex(index=n_g.index, columns=n_g.columns, fill_value=0))
+        f = (b_g / n_g.replace(0, np.nan)).fillna(0)
+        tgf_directa = 5 * f.sum(axis=1)
+        nac = b_g.sum(axis=1).astype(float)
+        dep = pd.Series(n_g.index.str[:2], index=n_g.index)
+        f_dep = (b_g.groupby(dep).transform("sum") / n_g.groupby(dep).transform("sum").replace(0, np.nan)).fillna(0)
+        esperados = (n_g * f_dep).sum(axis=1)
+        tgf_dep = 5 * f_dep.sum(axis=1)
+        theta = nac / esperados.replace(0, np.nan)
+        mbar = nac.sum() / esperados.sum()
+        tau2 = max(float((esperados * (theta - mbar) ** 2).sum() / esperados.sum() - mbar / esperados.mean()), 1e-4)
+        a_, b_ = mbar ** 2 / tau2, mbar / tau2
+        theta_eb = (nac + a_) / (esperados + b_)
+        # ★ 2012 NO ES 2024 (medido con hijos propios sobre el censo 2024, que llega 15
+        #   años atrás): los niños de 11-12 años censados en 2024 dan una TGF de 3,09
+        #   para 2012, igual que la oficial del INE (3,05, Rev. 2020), mientras que la
+        #   pregunta de fecha del último hijo del censo 2012 (P48) da 2,69: ese censo
+        #   omitió ~13 % de los nacimientos recientes. En 2024 no pasa: la directa cruda
+        #   (1,79) está sobre la tendencia de hijos propios (1,79 en 2022,5 y cayendo).
+        #   ⇒ 2024: se calibra sólo el DENOMINADOR (omisión censal, población INE).
+        #      2012: se calibra la TGF departamental a la del INE Rev. 2020 (razón
+        #      TGF_INE_dep / TGF_directa_dep, con denominadores censales en ambas), que
+        #      absorbe numerador y denominador de una vez. Los dos años quedan en el
+        #      nivel de las revisiones oficiales, cada uno por evidencia medible.
+        if anio == 2012:
+            tgf_dep_directa = 5 * f_dep.sum(axis=1)                 # ya es la del dpto, por municipio
+            razon = pd.Series(n_g.index.str[:2], index=n_g.index).map(_TGF_INE_2012) / tgf_dep_directa
+            om = (1 / razon).fillna(1.0)
+        else:
+            om = _omision(anio, d[res].groupby(d.cod_ine.astype(str), observed=True).size())
+            om = om.reindex(n_g.index).fillna(1.0)
+        idx = tot.index.astype(str)
+        out["tgf"] = pd.Series((theta_eb * tgf_dep / om).reindex(idx).values, index=tot.index)
+        out["_den_tgf"] = pd.Series(n_g.sum(axis=1).reindex(idx).values, index=tot.index)
+        out["tgf_directa"] = pd.Series((tgf_directa / om).reindex(idx).values, index=tot.index)
+        out["tgf_nacimientos"] = pd.Series(nac.reindex(idx).values, index=tot.index)
+    else:
+        out["tgf"] = pd.Series(np.nan, index=tot.index)
+        out["_den_tgf"] = pd.Series(np.nan, index=tot.index)
     # ⚠️ El cociente exige que estén LAS DOS variables en la misma mujer.
     #    565.290 mujeres en 2012 (1.021.545 en 2024) declaran hijos nacidos y
     #    tienen el campo de sobrevivientes en "no aplica" —código grande que el
