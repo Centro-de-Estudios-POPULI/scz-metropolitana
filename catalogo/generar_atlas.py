@@ -232,7 +232,8 @@ def main():
         i = decl[k]
         porcat.setdefault(i["g"], []).append(
             {"key": k, "label": i["l"], "unit": i["u"], "dir": i.get("d", 0),
-             "desc": i.get("nota") or i["l"]})
+             "desc": i.get("nota") or i["l"],
+             **({"piv": i["piv"], "pivl": i.get("pivl") or "referencia"} if i.get("piv") is not None else {})})
     # ⚠️ El emparejamiento de grupos va SIN mayúsculas: el catálogo del motor dice
     #    "Vivienda y materiales" y el del Atlas "Vivienda y Materiales", y con
     #    comparación exacta aparecía un grupo NUEVO duplicado, idéntico salvo una

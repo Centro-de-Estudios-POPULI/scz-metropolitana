@@ -90,9 +90,13 @@ UNIVERSOS = {
 
 # ─────────────────────────────────────────────────────────────────────────────
 def I(k, l, u, d, g, *, n="mun", s=False, y12="si", uni="viv_ocu",
-      e24=None, e12=None, val=None, nota=None, fuente="microdato"):
+      e24=None, e12=None, val=None, nota=None, fuente="microdato",
+      piv=None, pivl=None):
+    """`piv`/`pivl`: pivote FIJO de la escala divergente y su rótulo (p. ej. el nivel
+    de reemplazo 2,1 en la TGF). Sin declararlo, el Atlas centra en el país 2024."""
     return dict(k=k, l=l, u=u, d=d, g=g, n=n, s=s, y12=y12, uni=uni,
-                e24=e24, e12=e12, val=val, nota=nota, fuente=fuente)
+                e24=e24, e12=e12, val=val, nota=nota, fuente=fuente,
+                piv=piv, pivl=pivl)
 
 
 CATALOGO = []
@@ -407,7 +411,7 @@ A(I("fecundidad", "Hijos por mujer (15-49)", "hijos", 0, G, uni="mef",
     e24="media(p54_hvtot)", e12="media(P46)", val="salud/6"))
 A(I("paridez_media", "Paridez media (12+)", "hijos", 0, G, uni="muj12",
     e24="media(p54_hvtot)", e12="media(P46)", val="salud/6"))
-A(I("tgf", "Tasa global de fecundidad", "hijos", 0, G, uni="mef",
+A(I("tgf", "Tasa global de fecundidad", "hijos", 0, G, uni="mef", piv=2.1, pivl="reemplazo",
     e24="5·Σ_g (mujeres 15-49 con hulta==1 / mujeres del grupo quinquenal g), calibrada con pob. INE municipal y encogida hacia el dpto (gamma-Poisson)",
     e12="idem, con nacimiento en dic-2011..nov-2012 según P48A/P48B; factor de omisión departamental",
     nota="Hijos por mujer que resultan de las tasas de fecundidad por edad del año previo al censo, en mujeres de 15 a 49; método directo del censo (el del INE para 2024), con el denominador calibrado a la población municipal del INE y suavizado hacia el departamento donde hay pocos nacimientos."))
